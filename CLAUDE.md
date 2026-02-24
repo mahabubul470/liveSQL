@@ -163,6 +163,16 @@ docs/<short-description>
 chore/<short-description>
 ```
 
+### Commit Rules
+
+- **Make atomic commits** — each commit should be a single logical change
+- **Do NOT add co-author lines** (no `Co-Authored-By`)
+- **Do NOT auto-commit** — only commit when explicitly asked
+- **Do NOT amend** unless explicitly asked — always create new commits
+- **Do NOT push** unless explicitly asked
+- Run `git status` and `git diff` before committing to verify changes
+- Stage specific files by name — avoid `git add -A` or `git add .`
+
 ## Current Phase
 
 **Phase 0 — Foundation & PoC (Weeks 1–3)**
