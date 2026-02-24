@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Internal documentation (not for public repo)
+docs-internal/
+
+# Changesets temp
+.changeset/*.md
+!.changeset/README.md
+!.changeset/config.json
+
+# Docker volumes
+postgres-data/
+
+# Turbo (if added later)
+.turbo/

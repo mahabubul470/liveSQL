@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: livesql_test
+      POSTGRES_USER: livesql
+      POSTGRES_PASSWORD: test
+    command: >
+      postgres
+      -c wal_level=logical
+      -c max_replication_slots=10
+      -c max_wal_senders=10
+      -c max_slot_wal_keep_size=256
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U livesql -d livesql_test"]
+      interval: 2s
+      retries: 10
