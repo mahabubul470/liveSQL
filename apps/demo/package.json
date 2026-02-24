@@ -1,0 +1,16 @@
+{
+  "name": "demo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "LiveSQL demo — live order status dashboard",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "setup-db": "node setup-db.js"
+  },
+  "dependencies": {
+    "@livesql/core": "workspace:*",
+    "@livesql/server": "workspace:*",
+    "pg": "^8.13.0"
+  }
+}

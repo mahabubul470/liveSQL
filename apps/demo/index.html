@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LiveSQL Demo — Order Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #f8fafc;
+    }
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+    .status-dot.connected { background: #22c55e; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1e293b;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th {
+      background: #334155;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+    }
+    td {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid #334155;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .badge.pending { background: #854d0e; color: #fef08a; }
+    .badge.processing { background: #1e40af; color: #93c5fd; }
+    .badge.shipped { background: #166534; color: #86efac; }
+    .badge.delivered { background: #14532d; color: #4ade80; }
+    .badge.cancelled { background: #7f1d1d; color: #fca5a5; }
+    .event-log {
+      margin-top: 2rem;
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: "SF Mono", "Cascadia Code", monospace;
+      font-size: 0.8rem;
+    }
+    .event-log h3 {
+      margin-bottom: 0.5rem;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+    .event {
+      padding: 0.3rem 0;
+      border-bottom: 1px solid #334155;
+      color: #cbd5e1;
+    }
+    .event .type { font-weight: 600; }
+    .event .type.insert { color: #22c55e; }
+    .event .type.update { color: #3b82f6; }
+    .event .type.delete { color: #ef4444; }
+    .event .time { color: #64748b; }
+    @keyframes flash {
+      0% { background: #22c55e33; }
+      100% { background: transparent; }
+    }
+    tr.flash { animation: flash 1s ease-out; }
+  </style>
+</head>
+<body>
+  <h1>LiveSQL Order Dashboard</h1>
+  <p class="subtitle">Real-time updates via WebSocket. Insert/update rows in psql and watch them appear.</p>
+
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Connecting...</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Customer</th>
+        <th>Status</th>
+        <th>Total</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody id="ordersBody">
+      <tr><td colspan="5" style="text-align:center; color:#64748b;">Waiting for data...</td></tr>
+    </tbody>
+  </table>
+
+  <div class="event-log">
+    <h3>Event Log</h3>
+    <div id="eventLog"></div>
+  </div>
+
+  <script>
+    const ordersBody = document.getElementById("ordersBody");
+    const eventLog = document.getElementById("eventLog");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const orders = new Map();
+    let ws;
+    let reconnectAttempt = 0;
+
+    function connectWebSocket() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      ws = new WebSocket(`${protocol}//${location.host}`);
+
+      ws.onopen = () => {
+        statusDot.classList.add("connected");
+        statusText.textContent = "Connected";
+        reconnectAttempt = 0;
+
+        // Subscribe to orders table
+        ws.send(JSON.stringify({ type: "subscribe", table: "orders" }));
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "sync") {
+          for (const change of msg.events) {
+            handleChange(change);
+          }
+        }
+      };
+
+      ws.onclose = () => {
+        statusDot.classList.remove("connected");
+        statusText.textContent = "Disconnected — reconnecting...";
+        const delay = Math.min(250 * Math.pow(2, reconnectAttempt), 30000);
+        const jitter = delay * (0.75 + Math.random() * 0.5);
+        reconnectAttempt++;
+        setTimeout(connectWebSocket, jitter);
+      };
+
+      ws.onerror = () => {};
+    }
+
+    function handleChange(change) {
+      // Log the event
+      const logEntry = document.createElement("div");
+      logEntry.className = "event";
+      const time = new Date().toLocaleTimeString();
+      logEntry.innerHTML = `<span class="time">${time}</span> <span class="type ${change.type}">${change.type.toUpperCase()}</span> ${change.table} — ${JSON.stringify(change.row).substring(0, 100)}`;
+      eventLog.prepend(logEntry);
+
+      // Update the orders map
+      const row = change.row;
+      if (change.type === "insert" || change.type === "update") {
+        orders.set(row.id, row);
+      } else if (change.type === "delete") {
+        orders.delete(row.id);
+      }
+
+      renderOrders(row.id);
+    }
+
+    function renderOrders(flashId) {
+      if (orders.size === 0) {
+        ordersBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">No orders yet</td></tr>';
+        return;
+      }
+
+      ordersBody.innerHTML = "";
+      for (const [id, order] of orders) {
+        const tr = document.createElement("tr");
+        if (id === flashId) tr.className = "flash";
+        tr.innerHTML = `
+          <td>${id.substring(0, 8)}...</td>
+          <td>${order.customer_name || ""}</td>
+          <td><span class="badge ${order.status || ""}">${order.status || ""}</span></td>
+          <td>$${Number(order.total || 0).toFixed(2)}</td>
+          <td>${order.created_at ? new Date(order.created_at).toLocaleString() : ""}</td>
+        `;
+        ordersBody.appendChild(tr);
+      }
+    }
+
+    connectWebSocket();
+  </script>
+</body>
+</html>
