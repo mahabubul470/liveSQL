@@ -71,6 +71,10 @@ In another terminal:
 ```bash
 docker exec -it livesql-postgres-1 psql -U livesql -d livesql_test -c \
   "INSERT INTO orders (customer_name, status, total) VALUES ('Live User', 'pending', 42.00);"
+
+# Or directly via psql on port 5433:
+psql postgresql://livesql:test@localhost:5434/livesql_test -c \
+  "INSERT INTO orders (customer_name, status, total) VALUES ('Live User', 'pending', 42.00);"
 ```
 
 The new order should appear in your browser instantly.

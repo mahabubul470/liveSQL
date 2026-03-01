@@ -7,7 +7,7 @@ import { createLiveSQLServer, ListenNotifyProvider } from "@livesql/server";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const DATABASE_URL =
-  process.env.DATABASE_URL || "postgresql://livesql:test@localhost:5432/livesql_test";
+  process.env.DATABASE_URL || "postgresql://livesql:test@localhost:5434/livesql_test";
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 // 1. Create the CDC provider

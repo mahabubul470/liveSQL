@@ -1,7 +1,7 @@
 import pg from "pg";
 
 const DATABASE_URL =
-  process.env.DATABASE_URL || "postgresql://livesql:test@localhost:5432/livesql_test";
+  process.env.DATABASE_URL || "postgresql://livesql:test@localhost:5434/livesql_test";
 
 const client = new pg.Client({ connectionString: DATABASE_URL });
 
