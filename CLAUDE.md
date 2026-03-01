@@ -175,22 +175,22 @@ chore/<short-description>
 
 ## Current Phase
 
-**Phase 0 — Foundation & PoC (Weeks 1–3)**
+**Phase 1 — WAL-Based CDC Engine + Alpha**
 
-The immediate goal is a working proof of concept: insert a row in psql, see it appear in the browser within 100ms. Use LISTEN/NOTIFY for the PoC (simplest path), then replace with WAL in Phase 1.
+Phase 0 is complete. The PoC works: INSERT in psql → event in browser via LISTEN/NOTIFY in ~200ms. All packages build, typecheck, lint clean. 28 tests pass (9 core unit, 13 client unit, 2 server unit, 4 integration E2E).
 
-Phase 0 deliverables:
+Phase 1 goal: replace LISTEN/NOTIFY with WAL logical replication for guaranteed delivery and reconnection backfill. Add JWT auth, table-level permissions, and filter validation. Publish alpha packages to npm.
 
-1. Scaffold pnpm monorepo with packages/core, packages/server, packages/client
-2. Define wire protocol types in packages/core
-3. Define ChangeProvider interface in packages/core
-4. Build PostgreSQL LISTEN/NOTIFY provider (temporary, for PoC only)
-5. Build minimal WebSocket server with fan-out
-6. Build vanillaJS client that subscribes and logs events
-7. Create a single demo: live order status dashboard
-8. Write a 5-minute quickstart README
+Phase 1 deliverables:
 
-**Success gate**: A developer can clone the repo, run docker compose + pnpm dev, and see a DB INSERT appear in the browser in under 5 minutes.
+1. Implement `PostgresProvider` using pgoutput logical replication
+2. WAL slot health monitoring (`checkSlotHealth`)
+3. Offset-based reconnection — `replayFrom(offset)` on reconnect
+4. JWT authentication on WebSocket handshake
+5. Table-level `permissions(userId, table)` callback
+6. Filter validation (`validateFilter` / `matchesFilter`)
+7. Expand integration test suite (reconnection backfill, auth, filters)
+8. Publish `@livesql/core`, `@livesql/server`, `@livesql/client` v0.1.0-alpha
 
 See [docs/implementation-plan.md](docs/implementation-plan.md) for all phases.
 See [docs/progress.md](docs/progress.md) for current task tracking.

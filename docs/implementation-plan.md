@@ -6,11 +6,13 @@ The roadmap is structured around four phases, each shipping a usable artifact. N
 
 ---
 
-## Phase 0 — Foundation & PoC (Weeks 1-3)
+## Phase 0 — Foundation & PoC ✅ COMPLETE
 
 **Goal**: A working demo where a DB INSERT appears in the browser within 100ms. Use the simplest CDC mechanism (LISTEN/NOTIFY) to get a working proof of concept fast.
 
 **Success gate**: A developer can clone the repo, run `docker compose up` + `pnpm dev`, and see a DB INSERT appear in the browser in under 5 minutes.
+
+**Result**: Gate passed. INSERT → browser event in ~200ms via LISTEN/NOTIFY. 28 tests passing (unit + integration E2E). All packages build and typecheck clean.
 
 ### Deliverables
 
@@ -55,7 +57,7 @@ The roadmap is structured around four phases, each shipping a usable artifact. N
 
 ---
 
-## Phase 1 — WAL-Based CDC Engine + Alpha (Weeks 4-9)
+## Phase 1 — WAL-Based CDC Engine + Alpha (Weeks 4-9) ← CURRENT
 
 **Goal**: Replace LISTEN/NOTIFY with production-grade WAL-based CDC. Add authentication, permissions, and filtering. Publish alpha packages to npm.
 

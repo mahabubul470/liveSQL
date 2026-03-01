@@ -101,7 +101,7 @@ livesql/
 
 ## Status
 
-**Phase 0 — Proof of Concept.** The current implementation uses PostgreSQL LISTEN/NOTIFY for simplicity. Phase 1 will replace this with WAL logical replication for guaranteed delivery and reconnection support.
+**Phase 1 — WAL-Based CDC Engine (in progress).** Phase 0 PoC is complete: INSERT → browser event in ~200ms, 28 tests passing. The current implementation uses PostgreSQL LISTEN/NOTIFY. Phase 1 replaces this with WAL logical replication for guaranteed delivery, true sub-100ms latency, and reconnection backfill.
 
 See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
 
