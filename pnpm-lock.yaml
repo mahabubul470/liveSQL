@@ -92,6 +92,34 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  tests/integration:
+    dependencies:
+      '@livesql/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@livesql/server':
+        specifier: workspace:*
+        version: link:../../packages/server
+      pg:
+        specifier: ^8.13.0
+        version: 8.18.0
+      ws:
+        specifier: ^8.18.0
+        version: 8.19.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.11.0
+        version: 8.16.0
+      '@types/ws':
+        specifier: ^8.5.0
+        version: 8.18.1
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@25.3.0)(yaml@2.8.2)
+
 packages:
 
   '@esbuild/aix-ppc64@0.27.3':
