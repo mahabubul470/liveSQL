@@ -8,62 +8,62 @@
 
 ### Monorepo Setup
 
-- [ ] Initialize git repository
-- [ ] Create `pnpm-workspace.yaml`
-- [ ] Create root `package.json` with workspace scripts
-- [ ] Create root `tsconfig.base.json` (ES2022, NodeNext, strict)
-- [ ] Configure eslint + prettier
-- [ ] Configure husky + lint-staged
-- [ ] Create `.gitignore`
-- [ ] Create `docker-compose.test.yml` (PostgreSQL 16, wal_level=logical)
+- [x] Initialize git repository
+- [x] Create `pnpm-workspace.yaml`
+- [x] Create root `package.json` with workspace scripts
+- [x] Create root `tsconfig.base.json` (ES2022, NodeNext, strict)
+- [x] Configure eslint + prettier
+- [x] Configure husky + lint-staged
+- [x] Create `.gitignore`
+- [x] Create `docker-compose.test.yml` (PostgreSQL 16, wal_level=logical)
 
 ### packages/core
 
-- [ ] Create `package.json` for `@livesql/core`
-- [ ] Create `tsconfig.json` with project references
-- [ ] Define `ChangeType` and `ChangeEvent` types
-- [ ] Define `SubscribeMessage` and `UnsubscribeMessage` types
-- [ ] Define `SyncMessage` and `ErrorMessage` types
-- [ ] Define `ClientMessage` and `ServerMessage` union types
-- [ ] Define `ChangeProvider` interface
-- [ ] Create `index.ts` with public exports
-- [ ] Build succeeds with `tsup`
+- [x] Create `package.json` for `@livesql/core`
+- [x] Create `tsconfig.json` with project references
+- [x] Define `ChangeType` and `ChangeEvent` types
+- [x] Define `SubscribeMessage` and `UnsubscribeMessage` types
+- [x] Define `SyncMessage` and `ErrorMessage` types
+- [x] Define `ClientMessage` and `ServerMessage` union types
+- [x] Define `ChangeProvider` interface
+- [x] Create `index.ts` with public exports
+- [x] Build succeeds with `tsup`
 
 ### packages/server
 
-- [ ] Create `package.json` for `@livesql/server`
-- [ ] Create `tsconfig.json`
-- [ ] Implement `ListenNotifyProvider` (LISTEN/NOTIFY for PoC)
-- [ ] Create trigger function for INSERT/UPDATE/DELETE notifications
-- [ ] Implement minimal WebSocket server (`createLiveSQLServer`)
-- [ ] Handle subscribe/unsubscribe messages
-- [ ] Fan-out events to matching subscribers
-- [ ] Create `index.ts` with public exports
-- [ ] Build succeeds
+- [x] Create `package.json` for `@livesql/server`
+- [x] Create `tsconfig.json`
+- [x] Implement `ListenNotifyProvider` (LISTEN/NOTIFY for PoC)
+- [x] Create trigger function for INSERT/UPDATE/DELETE notifications
+- [x] Implement minimal WebSocket server (`createLiveSQLServer`)
+- [x] Handle subscribe/unsubscribe messages
+- [x] Fan-out events to matching subscribers
+- [x] Create `index.ts` with public exports
+- [x] Build succeeds
 
 ### packages/client
 
-- [ ] Create `package.json` for `@livesql/client`
-- [ ] Create `tsconfig.json`
-- [ ] Implement `LiveSQLClient` class
-- [ ] WebSocket connect and message handling
-- [ ] Subscribe/unsubscribe methods
-- [ ] Basic reconnection (simple retry)
-- [ ] Offset tracking
-- [ ] Create `index.ts` with public exports
-- [ ] Build succeeds
+- [x] Create `package.json` for `@livesql/client`
+- [x] Create `tsconfig.json`
+- [x] Implement `LiveSQLClient` class
+- [x] WebSocket connect and message handling
+- [x] Subscribe/unsubscribe methods
+- [x] Basic reconnection (simple retry)
+- [x] Offset tracking
+- [x] Create `index.ts` with public exports
+- [x] Build succeeds
 
 ### apps/demo
 
-- [ ] Create demo application (HTML + vanilla JS)
-- [ ] Live order status dashboard
-- [ ] Auto-updates on INSERT/UPDATE/DELETE
-- [ ] SQL setup script for demo tables
+- [x] Create demo application (HTML + vanilla JS)
+- [x] Live order status dashboard
+- [x] Auto-updates on INSERT/UPDATE/DELETE
+- [x] SQL setup script for demo tables
 
 ### Documentation
 
-- [ ] Write README.md with 5-minute quickstart
-- [ ] Verify: clone → install → docker up → insert row → see in browser < 5 min
+- [x] Write README.md with 5-minute quickstart
+- [x] Verify: clone → install → docker up → insert row → see in browser < 5 min
 
 ---
 
