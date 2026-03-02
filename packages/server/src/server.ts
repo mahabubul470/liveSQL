@@ -1,6 +1,9 @@
 import { WebSocketServer, WebSocket } from "ws";
+import jwt from "jsonwebtoken";
 import type http from "node:http";
 import type { ChangeEvent, ChangeProvider, ClientMessage, ServerMessage } from "@livesql/core";
+import { validateFilter, matchesFilter, FilterValidationError } from "./validate-filter.js";
+import type { ParsedFilter } from "./validate-filter.js";
 
 export interface ServerOptions {
   /** PostgreSQL connection string */
@@ -9,18 +12,31 @@ export interface ServerOptions {
   tables: string[];
   /** WebSocket server port (when running standalone, not attached to HTTP server) */
   port?: number;
+  /**
+   * JWT secret for built-in token verification.
+   * When set, the server verifies the `?token=` query parameter as a JWT.
+   * Mutually exclusive with `authenticate`.
+   */
+  jwtSecret?: string;
   /** Authentication function — return user object or null to reject */
   authenticate?: (req: http.IncomingMessage) => Promise<{ id: string } | null>;
   /** Table-level permission — can this user subscribe to this table? */
   permissions?: (userId: string, table: string) => Promise<boolean> | boolean;
   /** Row-level permission — can this user see this specific row? */
   rowPermission?: (userId: string, table: string, row: Record<string, unknown>) => boolean;
+  /**
+   * Columns allowed in client-supplied filter expressions, per table.
+   * If not set, filters are rejected.
+   * Example: { orders: ["status", "user_id"] }
+   */
+  allowedFilterColumns?: Record<string, string[]>;
 }
 
 interface ClientState {
   ws: WebSocket;
   userId: string;
   subscriptions: Map<string, () => void>; // table -> unsubscribe fn
+  filters: Map<string, ParsedFilter>; // table -> parsed filter (optional)
   lastOffset: bigint;
 }
 
@@ -42,7 +58,26 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
     wss.on("connection", async (ws, req) => {
       // 1. Authenticate
       let userId = "anonymous";
-      if (opts.authenticate) {
+
+      if (opts.jwtSecret) {
+        // Built-in JWT verification from ?token= query parameter
+        const rawUrl = req.url ?? "";
+        const qIdx = rawUrl.indexOf("?");
+        const params = new URLSearchParams(qIdx >= 0 ? rawUrl.slice(qIdx + 1) : "");
+        const token = params.get("token");
+        if (!token) {
+          ws.close(4001, "Unauthorized");
+          return;
+        }
+        try {
+          const payload = jwt.verify(token, opts.jwtSecret) as Record<string, unknown>;
+          const sub = payload["sub"] ?? payload["id"];
+          userId = typeof sub === "string" ? sub : "authenticated";
+        } catch {
+          ws.close(4001, "Unauthorized");
+          return;
+        }
+      } else if (opts.authenticate) {
         const user = await opts.authenticate(req);
         if (!user) {
           ws.close(4001, "Unauthorized");
@@ -57,6 +92,7 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
         ws,
         userId,
         subscriptions: new Map(),
+        filters: new Map(),
         lastOffset: BigInt(0),
       };
       clients.set(clientId, state);
@@ -98,13 +134,23 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
     }
 
     if (msg.type === "subscribe") {
-      handleSubscribe(state, msg.table, serverOpts);
+      // offset arrives as a string from JSON (BigInt is serialised as string by sendSync)
+      const rawOffset = (msg as unknown as Record<string, unknown>)["offset"];
+      const offset =
+        rawOffset !== undefined && rawOffset !== null ? BigInt(rawOffset as string) : undefined;
+      void handleSubscribe(state, msg.table, msg.filter, offset, serverOpts);
     } else if (msg.type === "unsubscribe") {
       handleUnsubscribe(state, msg.table);
     }
   }
 
-  async function handleSubscribe(state: ClientState, table: string, serverOpts: ServerOptions) {
+  async function handleSubscribe(
+    state: ClientState,
+    table: string,
+    filterExpr: string | undefined,
+    offset: bigint | undefined,
+    serverOpts: ServerOptions,
+  ) {
     // 1. Check table is in allowlist
     if (!serverOpts.tables.includes(table)) {
       sendError(state.ws, "TABLE_NOT_FOUND", `Table '${table}' not exposed`);
@@ -120,19 +166,49 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
       }
     }
 
-    // 3. Unsubscribe from previous subscription to same table (if any)
+    // 3. Parse and validate filter expression (if provided)
+    let parsedFilter: ParsedFilter | undefined;
+    if (filterExpr) {
+      const allowedCols = serverOpts.allowedFilterColumns?.[table];
+      if (!allowedCols || allowedCols.length === 0) {
+        sendError(state.ws, "INVALID_FILTER", `Filtering is not enabled for table '${table}'`);
+        return;
+      }
+      try {
+        parsedFilter = validateFilter(filterExpr, allowedCols);
+      } catch (err) {
+        const msg = err instanceof FilterValidationError ? err.message : "Invalid filter";
+        sendError(state.ws, "INVALID_FILTER", msg);
+        return;
+      }
+    }
+
+    // 4. Unsubscribe from previous subscription to same table (if any)
     const existing = state.subscriptions.get(table);
     if (existing) {
       existing();
     }
 
-    // 4. Subscribe to CDC events
+    // Store filter for this subscription
+    if (parsedFilter) {
+      state.filters.set(table, parsedFilter);
+    } else {
+      state.filters.delete(table);
+    }
+
+    // 5. Subscribe to CDC events
     const unsubscribe = provider.subscribe(table, (event: ChangeEvent) => {
       // Row-level permission check
       if (serverOpts.rowPermission) {
         if (!serverOpts.rowPermission(state.userId, table, event.row)) {
           return;
         }
+      }
+
+      // Client-supplied filter check (in-process, never SQL)
+      const filter = state.filters.get(table);
+      if (filter && !matchesFilter(filter, event.row)) {
+        return;
       }
 
       // Update client's last known offset
@@ -143,6 +219,19 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
     });
 
     state.subscriptions.set(table, unsubscribe);
+
+    // 6. Replay buffered events if client is resuming from a previous offset
+    if (offset !== undefined) {
+      void (async () => {
+        for await (const event of provider.replayFrom(offset)) {
+          if (serverOpts.rowPermission && !serverOpts.rowPermission(state.userId, table, event.row))
+            continue;
+          const filter = state.filters.get(table);
+          if (filter && !matchesFilter(filter, event.row)) continue;
+          sendSync(state.ws, [event]);
+        }
+      })();
+    }
   }
 
   function handleUnsubscribe(state: ClientState, table: string) {
@@ -150,6 +239,7 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
     if (unsub) {
       unsub();
       state.subscriptions.delete(table);
+      state.filters.delete(table);
     }
   }
 
