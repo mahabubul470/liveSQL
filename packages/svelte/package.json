@@ -1,0 +1,34 @@
+{
+  "name": "@livesql/svelte",
+  "version": "0.1.0-alpha.2",
+  "license": "Apache-2.0",
+  "description": "Svelte store for LiveSQL — liveQuery",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --tsconfig tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "@livesql/client": "workspace:*",
+    "@livesql/core": "workspace:*",
+    "svelte": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@livesql/client": "workspace:*",
+    "@livesql/core": "workspace:*",
+    "svelte": "^4.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}
