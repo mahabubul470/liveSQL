@@ -124,9 +124,9 @@
 
 ### Publish Alpha
 
-- [x] `@livesql/core` v0.1.0-alpha.2 on npm
-- [x] `@livesql/server` v0.1.0-alpha.2 on npm
-- [x] `@livesql/client` v0.1.0-alpha.2 on npm
+- [x] `@livesql/core` v0.1.0-alpha.2 on npm (updated to alpha.3 in Phase 2)
+- [x] `@livesql/server` v0.1.0-alpha.2 on npm (updated to alpha.3 in Phase 2)
+- [x] `@livesql/client` v0.1.0-alpha.2 on npm (updated to alpha.3 in Phase 2)
 
 ---
 
@@ -134,25 +134,41 @@
 
 ### React Package
 
-- [ ] `LiveSQLProvider` context provider
-- [ ] `useLiveQuery<T>()` hook with insert/update/delete handling
-- [ ] `useLiveTable<T>()` Map-based hook
-- [ ] `useLiveSQLClient()` escape hatch
+- [x] `LiveSQLProvider` context provider
+- [x] `useLiveQuery<T>()` hook with insert/update/delete handling
+- [x] `useLiveTable<T>()` Map-based hook
+- [x] `useLiveSQLClient()` escape hatch
 
 ### Vue Package
 
-- [ ] `useLiveQuery` composable
+- [x] `useLiveQuery` composable
+- [x] `createLiveSQLPlugin` Vue plugin (provide/inject via `LIVESQL_CLIENT_KEY`)
 
 ### Svelte Package
 
-- [ ] `liveQuery` store
+- [x] `liveQuery` store (lazy `Readable<{data, loading, error}>`, explicit client param)
 
 ### Server Hardening
 
-- [ ] Row-level permission: `opts.rowPermission(userId, table, row)`
-- [ ] `EventBatcher` — coalesce, flush at 50 events or 16ms
-- [ ] Backpressure detection (`ws.bufferedAmount > 1MB`)
-- [ ] Emit `client:backpressure` event
+- [x] Row-level permission: `opts.rowPermission(userId, table, row)` (Phase 1)
+- [x] `EventBatcher` — coalesce, flush at 50 events or 16ms
+- [x] Backpressure detection (`ws.bufferedAmount > 1MB`)
+- [x] `opts.onBackpressure(userId)` callback
+
+### Client Hardening
+
+- [x] `LiveSQLError` exported from `@livesql/client`
+- [x] `onError` callback in `subscribe()` routes server errors to callers
+- [x] `filter` param in `subscribe()` sent in subscribe/re-subscribe messages
+
+### Publish Alpha
+
+- [x] `@livesql/core` v0.1.0-alpha.3 on npm
+- [x] `@livesql/server` v0.1.0-alpha.3 on npm
+- [x] `@livesql/client` v0.1.0-alpha.3 on npm
+- [x] `@livesql/react` v0.1.0-alpha.4 on npm (first publish)
+- [x] `@livesql/vue` v0.1.0-alpha.4 on npm (first publish)
+- [x] `@livesql/svelte` v0.1.0-alpha.4 on npm (first publish)
 
 ### Documentation Site
 
