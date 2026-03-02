@@ -1,6 +1,6 @@
 {
   "name": "@livesql/core",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.2",
   "license": "Apache-2.0",
   "description": "Shared types and wire protocol for LiveSQL",
   "type": "module",
@@ -13,7 +13,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts",
+    "build": "tsup src/index.ts --format esm --dts --tsconfig tsconfig.build.json",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"

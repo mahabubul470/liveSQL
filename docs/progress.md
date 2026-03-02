@@ -71,62 +71,62 @@
 
 ### PostgreSQL WAL Provider
 
-- [ ] Implement `PostgresProvider` class
-- [ ] Create publication and replication slot
-- [ ] Open replication connection
-- [ ] Parse pgoutput binary messages (Relation, Begin, Insert, Update, Delete, Commit)
-- [ ] Cache Relation messages by OID
-- [ ] Map column positions to names
-- [ ] Emit `ChangeEvent` for each row change
-- [ ] Track monotonic offset per event
-- [ ] Implement `replayFrom(offset)` for reconnection backfill
+- [x] Implement `PostgresProvider` class
+- [x] Create publication and replication slot
+- [x] Open replication connection
+- [x] Parse pgoutput binary messages (Relation, Begin, Insert, Update, Delete, Commit)
+- [x] Cache Relation messages by OID
+- [x] Map column positions to names
+- [x] Emit `ChangeEvent` for each row change
+- [x] Track monotonic offset per event
+- [x] Implement `replayFrom(offset)` for reconnection backfill
 
 ### WAL Slot Health
 
-- [ ] Implement `checkSlotHealth()` function
-- [ ] Query `pg_replication_slots` for `lag_bytes`
-- [ ] Configurable warning threshold (default 512MB)
-- [ ] Emit `slot:lag-warning` event
-- [ ] Emit `slot:inactive` event
-- [ ] Run health check on 30s interval
+- [x] Implement `checkSlotHealth()` function
+- [x] Query `pg_replication_slots` for `lag_bytes`
+- [x] Configurable warning threshold (default 512MB)
+- [x] Emit `slot:lag-warning` event
+- [x] Emit `slot:inactive` event
+- [x] Run health check on 30s interval
 
 ### Authentication & Permissions
 
-- [ ] JWT verification on WebSocket handshake
-- [ ] Token from query string (`?token=`) or Authorization header
-- [ ] `opts.permissions(userId, table)` callback on subscribe
-- [ ] Reject with `FORBIDDEN` error code
+- [x] JWT verification on WebSocket handshake
+- [x] Token from query string (`?token=`) or Authorization header
+- [x] `opts.permissions(userId, table)` callback on subscribe
+- [x] Reject with `FORBIDDEN` error code
 
 ### Filter Validation
 
-- [ ] Implement `validateFilter()` — parse `column operator value`
-- [ ] Validate column against `allowedFilterColumns`
-- [ ] Validate operator against allowlist (`=`, `!=`, `<`, `>`, `<=`, `>=`)
-- [ ] Implement `matchesFilter()` — in-process filter evaluation
-- [ ] Reject with `INVALID_FILTER` error code
+- [x] Implement `validateFilter()` — parse `column operator value`
+- [x] Validate column against `allowedFilterColumns`
+- [x] Validate operator against allowlist (`=`, `!=`, `<`, `>`, `<=`, `>=`)
+- [x] Implement `matchesFilter()` — in-process filter evaluation
+- [x] Reject with `INVALID_FILTER` error code
 
 ### Reconnection
 
-- [ ] Client stores `lastOffset` on every received event
-- [ ] Client sends `offset` in subscribe message on reconnect
-- [ ] Server replays from offset via `replayFrom()`
-- [ ] Exponential backoff: 250ms → 30s cap
+- [x] Client stores `lastOffset` on every received event
+- [x] Client sends `offset` in subscribe message on reconnect
+- [x] Server replays from offset via `replayFrom()`
+- [x] Exponential backoff: 250ms → 30s cap
 
 ### Integration Tests
 
-- [ ] Test: INSERT event delivered to subscribed client
-- [ ] Test: UPDATE event delivered with old + new row
-- [ ] Test: DELETE event delivered
-- [ ] Test: Reconnection backfills missed events
-- [ ] Test: Permission rejection returns FORBIDDEN
-- [ ] Test: Invalid filter returns INVALID_FILTER
-- [ ] Test: Unsubscribe stops event delivery
+- [x] Test: INSERT event delivered to subscribed client
+- [x] Test: UPDATE event delivered with old + new row
+- [x] Test: DELETE event delivered
+- [x] Test: Reconnection backfills missed events
+- [x] Test: Permission rejection returns FORBIDDEN
+- [x] Test: Invalid filter returns INVALID_FILTER
+- [x] Test: Unsubscribe stops event delivery
 
 ### Publish Alpha
 
-- [ ] `@livesql/core` v0.1.0-alpha on npm
-- [ ] `@livesql/server` v0.1.0-alpha on npm
-- [ ] `@livesql/client` v0.1.0-alpha on npm
+- [x] `@livesql/core` v0.1.0-alpha.2 on npm
+- [x] `@livesql/server` v0.1.0-alpha.2 on npm
+- [x] `@livesql/client` v0.1.0-alpha.2 on npm
 
 ---
 
