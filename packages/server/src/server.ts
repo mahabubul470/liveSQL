@@ -4,6 +4,7 @@ import type http from "node:http";
 import type { ChangeEvent, ChangeProvider, ClientMessage, ServerMessage } from "@livesql/core";
 import { validateFilter, matchesFilter, FilterValidationError } from "./validate-filter.js";
 import type { ParsedFilter } from "./validate-filter.js";
+import { EventBatcher } from "./event-batcher.js";
 
 export interface ServerOptions {
   /** PostgreSQL connection string */
@@ -30,6 +31,11 @@ export interface ServerOptions {
    * Example: { orders: ["status", "user_id"] }
    */
   allowedFilterColumns?: Record<string, string[]>;
+  /**
+   * Called when a client's send buffer exceeds 1 MiB and events are being
+   * dropped due to backpressure. Use this for alerting or metrics.
+   */
+  onBackpressure?: (userId: string) => void;
 }
 
 interface ClientState {
@@ -38,6 +44,7 @@ interface ClientState {
   subscriptions: Map<string, () => void>; // table -> unsubscribe fn
   filters: Map<string, ParsedFilter>; // table -> parsed filter (optional)
   lastOffset: bigint;
+  batcher: EventBatcher;
 }
 
 export interface LiveSQLServer {
@@ -88,12 +95,18 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
 
       // 2. Register client
       const clientId = `client_${++clientCounter}`;
+      const batcher = new EventBatcher(
+        ws,
+        (events) => sendSync(ws, events),
+        opts.onBackpressure ? () => opts.onBackpressure!(userId) : undefined,
+      );
       const state: ClientState = {
         ws,
         userId,
         subscriptions: new Map(),
         filters: new Map(),
         lastOffset: BigInt(0),
+        batcher,
       };
       clients.set(clientId, state);
 
@@ -104,6 +117,7 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
 
       // 4. Clean up on close
       ws.on("close", () => {
+        state.batcher.destroy();
         for (const unsub of state.subscriptions.values()) {
           unsub();
         }
@@ -214,8 +228,8 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
       // Update client's last known offset
       state.lastOffset = event.offset;
 
-      // Send to client
-      sendSync(state.ws, [event]);
+      // Queue event for batched delivery
+      state.batcher.add(event);
     });
 
     state.subscriptions.set(table, unsubscribe);
@@ -228,8 +242,10 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
             continue;
           const filter = state.filters.get(table);
           if (filter && !matchesFilter(filter, event.row)) continue;
-          sendSync(state.ws, [event]);
+          state.batcher.add(event);
         }
+        // Flush any remaining replay events immediately
+        state.batcher.flush();
       })();
     }
   }
