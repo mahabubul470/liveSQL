@@ -1,0 +1,140 @@
+{
+  "version": {
+    "pluginId": "default",
+    "version": "current",
+    "label": "Next",
+    "banner": null,
+    "badge": false,
+    "noIndex": false,
+    "className": "docs-version-current",
+    "isLast": true,
+    "docsSidebars": {
+      "docs": [
+        { "type": "link", "href": "/", "label": "Quickstart", "docId": "intro", "unlisted": false },
+        {
+          "type": "category",
+          "label": "Concepts",
+          "items": [
+            {
+              "type": "link",
+              "href": "/concepts/how-it-works",
+              "label": "How Sync Works",
+              "docId": "concepts/how-it-works",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        },
+        {
+          "type": "category",
+          "label": "API Reference",
+          "items": [
+            {
+              "type": "link",
+              "href": "/api/server",
+              "label": "@livesql/server",
+              "docId": "api/server",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/api/client",
+              "label": "@livesql/client",
+              "docId": "api/client",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/api/react",
+              "label": "@livesql/react",
+              "docId": "api/react",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/api/vue",
+              "label": "@livesql/vue",
+              "docId": "api/vue",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/api/svelte",
+              "label": "@livesql/svelte",
+              "docId": "api/svelte",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        },
+        {
+          "type": "category",
+          "label": "Guides",
+          "items": [
+            {
+              "type": "link",
+              "href": "/guides/migration-supabase",
+              "label": "Migrating from Supabase Realtime",
+              "docId": "guides/migration-supabase",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        }
+      ]
+    },
+    "docs": {
+      "api/client": {
+        "id": "api/client",
+        "title": "@livesql/client",
+        "description": "Framework-agnostic browser client. Zero runtime dependencies — uses the native WebSocket API.",
+        "sidebar": "docs"
+      },
+      "api/react": {
+        "id": "api/react",
+        "title": "@livesql/react",
+        "description": "React hooks for LiveSQL. Built on top of @livesql/client.",
+        "sidebar": "docs"
+      },
+      "api/server": {
+        "id": "api/server",
+        "title": "@livesql/server",
+        "description": "The server-side CDC engine and WebSocket server.",
+        "sidebar": "docs"
+      },
+      "api/svelte": {
+        "id": "api/svelte",
+        "title": "@livesql/svelte",
+        "description": "Svelte stores for LiveSQL. Built on top of @livesql/client.",
+        "sidebar": "docs"
+      },
+      "api/vue": {
+        "id": "api/vue",
+        "title": "@livesql/vue",
+        "description": "Vue composables for LiveSQL. Built on top of @livesql/client.",
+        "sidebar": "docs"
+      },
+      "concepts/how-it-works": {
+        "id": "concepts/how-it-works",
+        "title": "How Sync Works",
+        "description": "This page explains the mechanics of LiveSQL end-to-end: how a database write becomes a browser event in under 100ms.",
+        "sidebar": "docs"
+      },
+      "guides/migration-supabase": {
+        "id": "guides/migration-supabase",
+        "title": "Migrating from Supabase Realtime",
+        "description": "This guide shows how to replace Supabase Realtime subscriptions with LiveSQL — moving from LISTEN/NOTIFY-based delivery to WAL-guaranteed delivery.",
+        "sidebar": "docs"
+      },
+      "intro": {
+        "id": "intro",
+        "title": "LiveSQL — 5-Minute Quickstart",
+        "description": "Stream SQL database changes to web clients in real time — no migrations, no vendor lock-in.",
+        "sidebar": "docs"
+      }
+    }
+  }
+}

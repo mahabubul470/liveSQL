@@ -1,0 +1,27 @@
+{
+  "id": "concepts/how-it-works",
+  "title": "How Sync Works",
+  "description": "This page explains the mechanics of LiveSQL end-to-end: how a database write becomes a browser event in under 100ms.",
+  "source": "@site/docs/concepts/how-it-works.md",
+  "sourceDirName": "concepts",
+  "slug": "/concepts/how-it-works",
+  "permalink": "/concepts/how-it-works",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "How Sync Works"
+  },
+  "sidebar": "docs",
+  "previous": {
+    "title": "Quickstart",
+    "permalink": "/"
+  },
+  "next": {
+    "title": "@livesql/server",
+    "permalink": "/api/server"
+  }
+}

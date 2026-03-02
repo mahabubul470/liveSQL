@@ -1,0 +1,27 @@
+{
+  "id": "api/react",
+  "title": "@livesql/react",
+  "description": "React hooks for LiveSQL. Built on top of @livesql/client.",
+  "source": "@site/docs/api/react.md",
+  "sourceDirName": "api",
+  "slug": "/api/react",
+  "permalink": "/api/react",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "@livesql/react"
+  },
+  "sidebar": "docs",
+  "previous": {
+    "title": "@livesql/client",
+    "permalink": "/api/client"
+  },
+  "next": {
+    "title": "@livesql/vue",
+    "permalink": "/api/vue"
+  }
+}

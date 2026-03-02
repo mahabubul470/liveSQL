@@ -1,0 +1,25 @@
+{
+  "id": "intro",
+  "title": "LiveSQL — 5-Minute Quickstart",
+  "description": "Stream SQL database changes to web clients in real time — no migrations, no vendor lock-in.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/",
+  "permalink": "/",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "slug": "/",
+    "sidebar_label": "Quickstart",
+    "sidebar_position": 1,
+    "title": "LiveSQL — 5-Minute Quickstart"
+  },
+  "sidebar": "docs",
+  "next": {
+    "title": "How Sync Works",
+    "permalink": "/concepts/how-it-works"
+  }
+}

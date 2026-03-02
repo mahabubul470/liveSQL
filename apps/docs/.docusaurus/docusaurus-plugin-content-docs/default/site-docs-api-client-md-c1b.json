@@ -1,0 +1,27 @@
+{
+  "id": "api/client",
+  "title": "@livesql/client",
+  "description": "Framework-agnostic browser client. Zero runtime dependencies — uses the native WebSocket API.",
+  "source": "@site/docs/api/client.md",
+  "sourceDirName": "api",
+  "slug": "/api/client",
+  "permalink": "/api/client",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "@livesql/client"
+  },
+  "sidebar": "docs",
+  "previous": {
+    "title": "@livesql/server",
+    "permalink": "/api/server"
+  },
+  "next": {
+    "title": "@livesql/react",
+    "permalink": "/api/react"
+  }
+}

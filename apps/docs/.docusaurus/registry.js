@@ -1,0 +1,15 @@
+export default {
+  "06882b49": [() => import(/* webpackChunkName: "06882b49" */ "@site/docs/api/react.md"), "@site/docs/api/react.md", require.resolveWeak("@site/docs/api/react.md")],
+  "0e384e19": [() => import(/* webpackChunkName: "0e384e19" */ "@site/docs/intro.md"), "@site/docs/intro.md", require.resolveWeak("@site/docs/intro.md")],
+  "17896441": [() => import(/* webpackChunkName: "17896441" */ "@theme/DocItem"), "@theme/DocItem", require.resolveWeak("@theme/DocItem")],
+  "219d4ab3": [() => import(/* webpackChunkName: "219d4ab3" */ "@site/docs/guides/migration-supabase.md"), "@site/docs/guides/migration-supabase.md", require.resolveWeak("@site/docs/guides/migration-supabase.md")],
+  "22dd74f7": [() => import(/* webpackChunkName: "22dd74f7" */ "@generated/docusaurus-plugin-content-docs/default/p/index-466.json"), "@generated/docusaurus-plugin-content-docs/default/p/index-466.json", require.resolveWeak("@generated/docusaurus-plugin-content-docs/default/p/index-466.json")],
+  "296a8b4f": [() => import(/* webpackChunkName: "296a8b4f" */ "@site/docs/api/server.md"), "@site/docs/api/server.md", require.resolveWeak("@site/docs/api/server.md")],
+  "5e95c892": [() => import(/* webpackChunkName: "5e95c892" */ "@theme/DocsRoot"), "@theme/DocsRoot", require.resolveWeak("@theme/DocsRoot")],
+  "5f2ffadc": [() => import(/* webpackChunkName: "5f2ffadc" */ "@site/docs/concepts/how-it-works.md"), "@site/docs/concepts/how-it-works.md", require.resolveWeak("@site/docs/concepts/how-it-works.md")],
+  "9e7d18dc": [() => import(/* webpackChunkName: "9e7d18dc" */ "@site/docs/api/svelte.md"), "@site/docs/api/svelte.md", require.resolveWeak("@site/docs/api/svelte.md")],
+  "a7bd4aaa": [() => import(/* webpackChunkName: "a7bd4aaa" */ "@theme/DocVersionRoot"), "@theme/DocVersionRoot", require.resolveWeak("@theme/DocVersionRoot")],
+  "a94703ab": [() => import(/* webpackChunkName: "a94703ab" */ "@theme/DocRoot"), "@theme/DocRoot", require.resolveWeak("@theme/DocRoot")],
+  "aba21aa0": [() => import(/* webpackChunkName: "aba21aa0" */ "@generated/docusaurus-plugin-content-docs/default/__plugin.json"), "@generated/docusaurus-plugin-content-docs/default/__plugin.json", require.resolveWeak("@generated/docusaurus-plugin-content-docs/default/__plugin.json")],
+  "c1bcbd07": [() => import(/* webpackChunkName: "c1bcbd07" */ "@site/docs/api/client.md"), "@site/docs/api/client.md", require.resolveWeak("@site/docs/api/client.md")],
+  "f4ee0e94": [() => import(/* webpackChunkName: "f4ee0e94" */ "@site/docs/api/vue.md"), "@site/docs/api/vue.md", require.resolveWeak("@site/docs/api/vue.md")],};

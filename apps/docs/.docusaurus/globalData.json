@@ -1,0 +1,68 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "api/client",
+              "path": "/api/client",
+              "sidebar": "docs"
+            },
+            {
+              "id": "api/react",
+              "path": "/api/react",
+              "sidebar": "docs"
+            },
+            {
+              "id": "api/server",
+              "path": "/api/server",
+              "sidebar": "docs"
+            },
+            {
+              "id": "api/svelte",
+              "path": "/api/svelte",
+              "sidebar": "docs"
+            },
+            {
+              "id": "api/vue",
+              "path": "/api/vue",
+              "sidebar": "docs"
+            },
+            {
+              "id": "concepts/how-it-works",
+              "path": "/concepts/how-it-works",
+              "sidebar": "docs"
+            },
+            {
+              "id": "guides/migration-supabase",
+              "path": "/guides/migration-supabase",
+              "sidebar": "docs"
+            },
+            {
+              "id": "intro",
+              "path": "/",
+              "sidebar": "docs"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "docs": {
+              "link": {
+                "path": "/",
+                "label": "Quickstart"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}
