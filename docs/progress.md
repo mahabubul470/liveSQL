@@ -172,15 +172,15 @@
 
 ### Documentation Site
 
-- [ ] Set up Docusaurus in `apps/docs`
-- [ ] 5-minute quickstart tutorial
-- [ ] Concepts page: how sync works
-- [ ] API reference for all packages
-- [ ] Migration guide from Supabase Realtime
+- [x] Set up Docusaurus in `apps/docs`
+- [x] 5-minute quickstart tutorial
+- [x] Concepts page: how sync works
+- [x] API reference for all packages
+- [x] Migration guide from Supabase Realtime
 
 ### Demo & Load Testing
 
-- [ ] Polished React demo application
+- [x] Polished React demo application (apps/react-demo — Vite + @livesql/react)
 - [ ] k6 load test: 1,000 concurrent clients
 - [ ] Published benchmark results
 
