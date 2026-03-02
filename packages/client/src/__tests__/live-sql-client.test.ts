@@ -189,7 +189,7 @@ describe("LiveSQLClient — subscribe", () => {
     });
 
     expect(cb).toHaveBeenCalledOnce();
-    expect(cb.mock.calls[0][0]).toMatchObject({ type: "insert", table: "orders" });
+    expect(cb.mock.calls[0]![0]).toMatchObject({ type: "insert", table: "orders" });
   });
 
   it("does not dispatch events for a different table", async () => {
