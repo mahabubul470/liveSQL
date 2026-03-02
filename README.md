@@ -2,24 +2,32 @@
 
 **Stream SQL database changes to web clients in real time.**
 
-LiveSQL is an open-source TypeScript library that connects to your existing PostgreSQL database and pushes row-level changes to the browser via WebSockets. No database migration, no vendor lock-in — just add real-time sync to your existing tables.
+LiveSQL is an open-source TypeScript library that connects to your existing PostgreSQL database and pushes row-level changes to the browser via WebSockets — using WAL logical replication for guaranteed delivery and sub-100ms latency. No database migration, no vendor lock-in.
 
 ```typescript
-// Server: 4 lines to start streaming changes
-import { createLiveSQLServer, ListenNotifyProvider } from "@livesql/server";
+// Server — 5 lines to start streaming changes
+import { createLiveSQLServer, PostgresProvider } from "@livesql/server";
 
-const provider = new ListenNotifyProvider({ connectionString: DATABASE_URL, tables: ["orders"] });
+const provider = new PostgresProvider({ connectionString: DATABASE_URL, tables: ["orders"] });
 await provider.connect();
 
 const livesql = createLiveSQLServer(provider, { database: DATABASE_URL, tables: ["orders"] });
 livesql.attach(httpServer);
 ```
 
-```javascript
-// Client: subscribe and get live updates
-const ws = new WebSocket("ws://localhost:3000");
-ws.onopen = () => ws.send(JSON.stringify({ type: "subscribe", table: "orders" }));
-ws.onmessage = (e) => console.log(JSON.parse(e.data)); // { type: "sync", events: [...] }
+```typescript
+// Client — subscribe and get live updates
+import { LiveSQLClient } from "@livesql/client";
+
+const client = new LiveSQLClient("ws://localhost:3000", () => authToken);
+client.connect();
+client.subscribe("orders", (event) => console.log(event.type, event.row));
+```
+
+## Install
+
+```bash
+npm install @livesql/server @livesql/client @livesql/core
 ```
 
 ## Quick Start (5 minutes)
@@ -66,18 +74,37 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 6. Insert a row and watch it appear
 
-In another terminal:
-
 ```bash
-docker exec -it livesql-postgres-1 psql -U livesql -d livesql_test -c \
-  "INSERT INTO orders (customer_name, status, total) VALUES ('Live User', 'pending', 42.00);"
-
-# Or directly via psql on port 5433:
 psql postgresql://livesql:test@localhost:5434/livesql_test -c \
   "INSERT INTO orders (customer_name, status, total) VALUES ('Live User', 'pending', 42.00);"
 ```
 
-The new order should appear in your browser instantly.
+The new order appears in the browser instantly.
+
+## How It Works
+
+1. Your app writes to PostgreSQL as normal
+2. LiveSQL reads the WAL (Write-Ahead Log) via logical replication
+3. Changes are pushed to all subscribed WebSocket clients
+4. The client receives the event and updates the UI
+
+## Features
+
+- **WAL-based CDC** — guaranteed delivery via PostgreSQL logical replication (pgoutput). No triggers, no polling.
+- **Reconnection backfill** — clients resume from their last offset; missed events are replayed from an in-memory buffer.
+- **Filter validation** — clients filter events server-side with `"status = shipped"` syntax. Never executes SQL.
+- **JWT authentication** — built-in `?token=<jwt>` verification on WebSocket connect.
+- **Table and row permissions** — callbacks to enforce access control per user per change.
+- **WAL slot health monitoring** — configurable lag warnings and inactive slot detection.
+- **Zero migration** — attaches to existing tables as a sidecar.
+
+## Packages
+
+| Package                              | Description                               |
+| ------------------------------------ | ----------------------------------------- |
+| [`@livesql/core`](packages/core)     | Shared TypeScript types and wire protocol |
+| [`@livesql/server`](packages/server) | CDC engine and WebSocket server           |
+| [`@livesql/client`](packages/client) | Framework-agnostic browser client         |
 
 ## Project Structure
 
@@ -85,23 +112,21 @@ The new order should appear in your browser instantly.
 livesql/
 ├── packages/
 │   ├── core/       # Shared types and wire protocol
-│   ├── server/     # CDC engine + WebSocket server
+│   ├── server/     # WAL CDC engine + WebSocket server
 │   └── client/     # Framework-agnostic client SDK
 ├── apps/
 │   └── demo/       # Live order dashboard demo
 └── docs/           # Architecture and implementation docs
 ```
 
-## How It Works
-
-1. Your application writes to PostgreSQL as normal
-2. LiveSQL detects the change via Change Data Capture (CDC)
-3. The change is pushed to all subscribed WebSocket clients
-4. Client-side code receives the event and updates the UI
-
 ## Status
 
-**Phase 1 — WAL-Based CDC Engine (in progress).** Phase 0 PoC is complete: INSERT → browser event in ~200ms, 28 tests passing. The current implementation uses PostgreSQL LISTEN/NOTIFY. Phase 1 replaces this with WAL logical replication for guaranteed delivery, true sub-100ms latency, and reconnection backfill.
+**Phase 1 complete.** WAL logical replication is live. 62 tests passing.
+
+- [x] Phase 0 — LISTEN/NOTIFY PoC
+- [x] Phase 1 — WAL CDC engine, JWT auth, filter validation, reconnection backfill, alpha publish
+- [ ] Phase 2 — React hooks (`useLiveQuery`, `useLiveTable`), Vue composables, Svelte stores
+- [ ] Phase 3 — Production hardening, chaos tests, v1.0
 
 See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
 
