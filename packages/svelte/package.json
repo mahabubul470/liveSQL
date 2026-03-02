@@ -1,6 +1,6 @@
 {
   "name": "@livesql/svelte",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.4",
   "license": "Apache-2.0",
   "description": "Svelte store for LiveSQL — liveQuery",
   "type": "module",

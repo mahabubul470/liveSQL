@@ -1,6 +1,6 @@
 {
   "name": "@livesql/core",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "license": "Apache-2.0",
   "description": "Shared types and wire protocol for LiveSQL",
   "type": "module",
