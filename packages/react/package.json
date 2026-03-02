@@ -1,0 +1,39 @@
+{
+  "name": "@livesql/react",
+  "version": "0.1.0-alpha.2",
+  "license": "Apache-2.0",
+  "description": "React hooks for LiveSQL — useLiveQuery, useLiveTable, LiveSQLProvider",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --tsconfig tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "@livesql/client": "workspace:*",
+    "@livesql/core": "workspace:*",
+    "react": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@livesql/client": "workspace:*",
+    "@livesql/core": "workspace:*",
+    "@testing-library/react": "^16.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "happy-dom": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}
