@@ -15,7 +15,8 @@ export interface ServerOptions {
   port?: number;
   /**
    * JWT secret for built-in token verification.
-   * When set, the server verifies the `?token=` query parameter as a JWT.
+   * When set, the server verifies the `?token=` query parameter or
+   * `Authorization: Bearer <token>` header as a JWT.
    * Mutually exclusive with `authenticate`.
    */
   jwtSecret?: string;
@@ -67,11 +68,16 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
       let userId = "anonymous";
 
       if (opts.jwtSecret) {
-        // Built-in JWT verification from ?token= query parameter
+        // Built-in JWT verification from ?token= query parameter or Authorization header
         const rawUrl = req.url ?? "";
         const qIdx = rawUrl.indexOf("?");
         const params = new URLSearchParams(qIdx >= 0 ? rawUrl.slice(qIdx + 1) : "");
-        const token = params.get("token");
+        const authHeader = req.headers["authorization"];
+        const token =
+          params.get("token") ??
+          (typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+            ? authHeader.slice(7)
+            : null);
         if (!token) {
           ws.close(4001, "Unauthorized");
           return;
