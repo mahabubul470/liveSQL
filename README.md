@@ -1,4 +1,4 @@
-<![CDATA[# LiveSQL
+# LiveSQL
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/@livesql/server?label=%40livesql%2Fserver)](https://www.npmjs.com/package/@livesql/server)
@@ -14,14 +14,14 @@ LiveSQL is an open-source TypeScript library that connects to your existing Post
 
 Tested with 1,000 concurrent WebSocket clients and 50 inserts/sec ([full results](tests/load/RESULTS.md)):
 
-| Metric | Value |
-|--------|-------|
-| p50 event latency | 41ms |
-| **p95 event latency** | **96ms** |
-| Peak concurrent clients | 1,000 |
-| Events delivered | 3,976,800 |
-| Event throughput | ~37,872/sec |
-| Connection failures | 0% |
+| Metric                  | Value       |
+| ----------------------- | ----------- |
+| p50 event latency       | 41ms        |
+| **p95 event latency**   | **96ms**    |
+| Peak concurrent clients | 1,000       |
+| Events delivered        | 3,976,800   |
+| Event throughput        | ~37,872/sec |
+| Connection failures     | 0%          |
 
 ---
 
@@ -47,7 +47,11 @@ import { useLiveQuery } from "@livesql/react";
 function OrderList() {
   const { data: orders, loading } = useLiveQuery<Order>("orders");
   if (loading) return <p>Loading...</p>;
-  return orders.map(o => <div key={o.id}>{o.customer_name} — {o.status}</div>);
+  return orders.map((o) => (
+    <div key={o.id}>
+      {o.customer_name} — {o.status}
+    </div>
+  ));
 }
 ```
 
@@ -92,14 +96,14 @@ npm install @livesql/svelte                       # Svelte
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [`@livesql/core`](packages/core) | Shared TypeScript types and wire protocol |
-| [`@livesql/server`](packages/server) | WAL CDC engine and WebSocket server |
-| [`@livesql/client`](packages/client) | Framework-agnostic browser client |
-| [`@livesql/react`](packages/react) | React hooks — `useLiveQuery`, `useLiveTable` |
-| [`@livesql/vue`](packages/vue) | Vue composables — `useLiveQuery` |
-| [`@livesql/svelte`](packages/svelte) | Svelte stores — `liveQuery` |
+| Package                              | Description                                  |
+| ------------------------------------ | -------------------------------------------- |
+| [`@livesql/core`](packages/core)     | Shared TypeScript types and wire protocol    |
+| [`@livesql/server`](packages/server) | WAL CDC engine and WebSocket server          |
+| [`@livesql/client`](packages/client) | Framework-agnostic browser client            |
+| [`@livesql/react`](packages/react)   | React hooks — `useLiveQuery`, `useLiveTable` |
+| [`@livesql/vue`](packages/vue)       | Vue composables — `useLiveQuery`             |
+| [`@livesql/svelte`](packages/svelte) | Svelte stores — `liveQuery`                  |
 
 ## How It Works
 
@@ -258,7 +262,7 @@ livesql/
 
 - [x] **Phase 0** — LISTEN/NOTIFY PoC
 - [x] **Phase 1** — WAL CDC engine, JWT auth, filter validation, reconnection backfill
-- [x] **Phase 2** — React/Vue/Svelte SDKs, event batching, backpressure, docs site *(in progress — beta pending)*
+- [x] **Phase 2** — React/Vue/Svelte SDKs, event batching, backpressure, docs site _(in progress — beta pending)_
 - [ ] **Phase 3** — Chaos tests, observability hooks, production hardening, v1.0
 - [ ] **Phase 4** — MySQL support, managed cloud service
 
