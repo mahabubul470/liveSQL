@@ -1,0 +1,9 @@
+{
+  "name": "load-test",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@livesql/server": "workspace:*",
+    "pg": "^8.13.0"
+  }
+}

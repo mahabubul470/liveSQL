@@ -2,6 +2,13 @@
 
 > Update this file as tasks are completed. Check boxes with `[x]`.
 
+### Current Sprint (2026-03-07)
+
+1. ~~Authorization header support (`Bearer <token>`)~~ → Phase 1 complete
+2. ~~k6 load test (1,000 concurrent clients)~~ → p95 96ms, all thresholds passed
+3. ~~Publish benchmark results~~ → tests/load/RESULTS.md
+4. Observability hooks (`onEvent`, `onClientConnect`, `onClientDisconnect`)
+
 ---
 
 ## Phase 0 — Foundation & PoC
@@ -93,7 +100,8 @@
 ### Authentication & Permissions
 
 - [x] JWT verification on WebSocket handshake
-- [x] Token from query string (`?token=`) or Authorization header
+- [x] Token from query string (`?token=`)
+- [x] Token from Authorization header (`Bearer <token>`)
 - [x] `opts.permissions(userId, table)` callback on subscribe
 - [x] Reject with `FORBIDDEN` error code
 
@@ -181,8 +189,8 @@
 ### Demo & Load Testing
 
 - [x] Polished React demo application (apps/react-demo — Vite + @livesql/react)
-- [ ] k6 load test: 1,000 concurrent clients
-- [ ] Published benchmark results
+- [x] k6 load test: 1,000 concurrent clients (p95 event latency 96ms, all thresholds passed)
+- [x] Published benchmark results (tests/load/RESULTS.md)
 
 ### Publish Beta
 
@@ -204,7 +212,7 @@
 
 ### Production Features
 
-- [ ] Exponential backoff with jitter (+/-10-25%)
+- [x] Exponential backoff with jitter (±25%, implemented in client)
 - [ ] Observability hooks: onEvent, onError, onSlotLag, onClientConnect, onClientDisconnect
 - [ ] Replication slot failover detection and recreation
 - [ ] Comprehensive TypeScript types for all config

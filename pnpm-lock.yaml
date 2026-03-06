@@ -281,6 +281,15 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@25.3.0)(happy-dom@14.12.3)(jiti@1.21.7)(terser@5.46.0)(yaml@2.8.2)
 
+  tests/load:
+    dependencies:
+      '@livesql/server':
+        specifier: workspace:*
+        version: link:../../packages/server
+      pg:
+        specifier: ^8.13.0
+        version: 8.18.0
+
 packages:
 
   '@algolia/abtesting@1.15.1':
