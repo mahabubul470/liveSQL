@@ -288,4 +288,3 @@ See [CLAUDE.md](CLAUDE.md) for coding conventions and architectural guidelines.
 ## License
 
 [Apache 2.0](LICENSE)
-]]>
