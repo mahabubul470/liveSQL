@@ -1,0 +1,21 @@
+{
+  "name": "chaos-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@livesql/core": "workspace:*",
+    "@livesql/server": "workspace:*",
+    "@livesql/client": "workspace:*",
+    "pg": "^8.13.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.0",
+    "@types/node": "^25.0.0",
+    "@types/ws": "^8.5.0",
+    "@types/pg": "^8.11.0"
+  }
+}
