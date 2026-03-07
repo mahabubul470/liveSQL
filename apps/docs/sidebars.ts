@@ -20,7 +20,13 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Guides",
-      items: ["guides/migration-supabase"],
+      items: [
+        "guides/integration-express-fastify",
+        "guides/deployment",
+        "guides/postgrest",
+        "guides/migration-supabase",
+        "guides/migration-firebase",
+      ],
     },
   ],
 };

@@ -53,6 +53,16 @@ const orders = liveQuery<Order>(client, "orders", {
 });
 ```
 
+### `liveTable<T>(client, table, options?)`
+
+Same as `liveQuery` but returns a `Map<key, row>` for O(1) lookups.
+
+```ts
+const orders = liveTable<Order>(client, "orders");
+// $orders.data is Map<string, Order>
+const order = $orders.data.get(orderId);
+```
+
 ## License
 
 Apache-2.0

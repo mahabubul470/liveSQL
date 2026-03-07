@@ -175,22 +175,11 @@ chore/<short-description>
 
 ## Current Phase
 
-**Phase 1 — WAL-Based CDC Engine + Alpha**
+**v1.0.0-beta.1 Release**
 
-Phase 0 is complete. The PoC works: INSERT in psql → event in browser via LISTEN/NOTIFY in ~200ms. All packages build, typecheck, lint clean. 28 tests pass (9 core unit, 13 client unit, 2 server unit, 4 integration E2E).
+Phases 0–3 are complete. All features implemented, 163 tests passing (unit, integration, chaos), k6 load tested at 1,000 concurrent clients with p95 96ms.
 
-Phase 1 goal: replace LISTEN/NOTIFY with WAL logical replication for guaranteed delivery and reconnection backfill. Add JWT auth, table-level permissions, and filter validation. Publish alpha packages to npm.
-
-Phase 1 deliverables:
-
-1. Implement `PostgresProvider` using pgoutput logical replication
-2. WAL slot health monitoring (`checkSlotHealth`)
-3. Offset-based reconnection — `replayFrom(offset)` on reconnect
-4. JWT authentication on WebSocket handshake
-5. Table-level `permissions(userId, table)` callback
-6. Filter validation (`validateFilter` / `matchesFilter`)
-7. Expand integration test suite (reconnection backfill, auth, filters)
-8. Publish `@livesql/core`, `@livesql/server`, `@livesql/client` v0.1.0-alpha
+Current sprint: publish `v1.0.0-beta.1` to npm, collect community feedback for 2–4 weeks, then promote to `v1.0.0` stable.
 
 See [docs/implementation-plan.md](docs/implementation-plan.md) for all phases.
 See [docs/progress.md](docs/progress.md) for current task tracking.

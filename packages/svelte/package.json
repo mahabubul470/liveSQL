@@ -1,8 +1,11 @@
 {
   "name": "@livesql/svelte",
-  "version": "0.1.0-alpha.4",
+  "version": "1.0.0-beta.1",
   "license": "Apache-2.0",
-  "description": "Svelte store for LiveSQL — liveQuery",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Svelte stores for LiveSQL — liveQuery, liveTable",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

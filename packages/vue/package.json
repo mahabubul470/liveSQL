@@ -1,8 +1,11 @@
 {
   "name": "@livesql/vue",
-  "version": "0.1.0-alpha.4",
+  "version": "1.0.0-beta.1",
   "license": "Apache-2.0",
-  "description": "Vue 3 composables for LiveSQL — useLiveQuery, createLiveSQLPlugin",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Vue 3 composables for LiveSQL — useLiveQuery, useLiveTable, createLiveSQLPlugin",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -72,6 +72,15 @@ const { data, loading, error } = useLiveQuery<Order>("orders", {
 // data is Ref<T[]>, loading is Ref<boolean>, error is Ref<Error | null>
 ```
 
+### `useLiveTable<T>(table, options?)`
+
+Same as `useLiveQuery` but returns a `Map<key, row>` for O(1) lookups.
+
+```ts
+const { data } = useLiveTable<Order>("orders");
+const order = data.value.get(orderId);
+```
+
 ### `useLiveSQLClient()`
 
 Access the raw `LiveSQLClient` instance.

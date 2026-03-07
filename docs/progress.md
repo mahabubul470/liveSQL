@@ -2,13 +2,49 @@
 
 > Update this file as tasks are completed. Check boxes with `[x]`.
 
-### Current Sprint — Phase 3: Production Hardening
+### Current Sprint — v1.0.0-beta.1 Release
+
+#### Pre-Release Documentation
+
+1. [x] Update README: npm badge to beta, remove alpha references, update roadmap Phase 3 to say "beta"
+2. [x] Update svelte package description to include `liveTable` (already done)
+3. [x] Package READMEs: review for accuracy, ensure install commands don't reference alpha
+4. [x] CONTRIBUTING.md: brief contributor guide (setup, PR process, coding conventions)
+5. [x] CHANGELOG.md: summarize changes from alpha → beta (features, breaking changes if any)
+6. [x] Docs site (`apps/docs`): update intro page version references to beta (already version-agnostic)
+7. [x] Integration guide: brief "Adding LiveSQL to an existing Express/Fastify app" page
+8. [x] Deployment guide: brief "Running LiveSQL in production" (PostgreSQL config, env vars, health checks)
+9. [x] PostgREST integration guide: "Using PostgREST + LiveSQL" — Docker Compose setup, architecture diagram, example showing PostgREST for CRUD + LiveSQL for real-time streaming
+
+#### Release
+
+10. [x] Bump all package versions to `1.0.0-beta.1`
+11. [x] Add `publishConfig: { "access": "public" }` to all packages (already set)
+12. [x] Build all packages (`pnpm build`)
+13. [x] Run full test suite (`pnpm test`) — 163 tests passing
+14. [ ] Commit version bump and doc updates
+15. [ ] Publish to npm in dependency order: core → client → server → react → vue → svelte
+16. [ ] Create git tag `v1.0.0-beta.1` and GitHub release with beta pre-release flag
+17. [ ] Push tag and release
+
+#### Post-Release
+
+18. [ ] Hacker News "Show HN" submission
+19. [ ] Reddit post (r/typescript, r/node, r/webdev)
+20. [ ] Twitter/X announcement thread
+21. [ ] Dev.to / Hashnode launch blog post (how LiveSQL works, benchmarks, quick start)
+22. [ ] PostgREST deeper integration: shared Docker Compose template, example repo (`postgrest-livesql-starter`), optional auto-discovery of PostgREST tables
+23. [ ] Collect feedback for 2–4 weeks
+24. [ ] Triage issues and fix API ergonomic problems (if any)
+25. [ ] Promote to `v1.0.0` stable release once feedback is addressed
+
+### Previous Sprint — Phase 3: Production Hardening — DONE
 
 1. ~~Chaos tests (23 tests across 6 failure modes)~~ → all passing
 2. ~~Replication slot failover detection and auto-recovery~~ → PostgresProvider.recoverFromSlotLoss()
 3. ~~Comprehensive TypeScript types~~ → audit clean, added useLiveTable to Vue/Svelte for parity
 4. ~~Firebase migration guide~~ → apps/docs/docs/guides/migration-firebase.md
-5. Publish all packages as v1.0.0 after Phase 3 complete
+5. ~~Fix integration test event batching assertions~~ → predicate-based wait instead of exact count
 
 ### Previous Sprint (2026-03-07) — DONE
 
@@ -204,8 +240,7 @@
 
 ### Publish Beta
 
-- [ ] All packages at v0.5.0-beta
-- [ ] HackerNews Show HN post
+- [x] Publish beta before stable — v1.0.0-beta.1 for early adopter feedback
 
 ---
 
@@ -235,7 +270,7 @@
 
 ### Publish v1.0
 
-- [ ] All packages at v1.0.0
+- [ ] v1.0.0-beta.1 → collect feedback → v1.0.0 stable
 - [ ] Hacker News submission
 
 ---

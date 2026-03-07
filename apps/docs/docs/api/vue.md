@@ -108,6 +108,49 @@ const { data: pendingOrders } = useLiveQuery<Order>("orders", {
 
 ---
 
+## `useLiveTable<T>(table, options?)`
+
+Same as `useLiveQuery` but returns a `Map<key, row>` for O(1) lookups by primary key.
+
+```vue title="OrderLookup.vue"
+<script setup lang="ts">
+import { useLiveTable } from "@livesql/vue";
+
+interface Order {
+  id: string;
+  status: string;
+  total: number;
+}
+
+const { data: orders, loading } = useLiveTable<Order>("orders");
+// orders.value is Map<string, Order>
+</script>
+
+<template>
+  <div v-if="!loading">
+    <!-- O(1) lookup by ID -->
+    <p>Order abc: {{ orders.get("abc")?.status }}</p>
+    <p>Total orders: {{ orders.size }}</p>
+  </div>
+</template>
+```
+
+### Options
+
+Same as `useLiveQuery` — `filter`, `initialData`, `key`.
+
+### Return value
+
+```typescript
+interface UseLiveTableResult<T> {
+  data: Ref<Map<string, T>>; // Reactive Map keyed by primary key
+  loading: Ref<boolean>;
+  error: Ref<Error | null>;
+}
+```
+
+---
+
 ## `LIVESQL_CLIENT_KEY`
 
 The injection key used internally by `createLiveSQLPlugin`. Use this to access the raw `LiveSQLClient` for advanced use cases.

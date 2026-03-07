@@ -191,4 +191,7 @@ The event arrives in the browser in under 100ms.
 - [Server API reference](/api/server) — full configuration, permissions, and events
 - [React hooks](/api/react) — `useLiveQuery`, `useLiveTable`
 - [Vue composables](/api/vue) — `useLiveQuery`, `createLiveSQLPlugin`
-- [Svelte stores](/api/svelte) — `liveQuery`
+- [Svelte stores](/api/svelte) — `liveQuery`, `liveTable`
+- [Express / Fastify integration](/guides/integration-express-fastify) — add LiveSQL to an existing app
+- [Production deployment](/guides/deployment) — PostgreSQL config, health checks, scaling
+- [PostgREST + LiveSQL](/guides/postgrest) — full backend with zero server code

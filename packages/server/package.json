@@ -1,7 +1,10 @@
 {
   "name": "@livesql/server",
-  "version": "0.1.0-alpha.3",
+  "version": "1.0.0-beta.1",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "LiveSQL server — CDC engine and WebSocket server",
   "type": "module",
   "main": "dist/index.js",

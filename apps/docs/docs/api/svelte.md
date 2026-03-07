@@ -104,6 +104,43 @@ The store is lazy — it subscribes to the table when the first Svelte subscribe
 
 ---
 
+## `liveTable<T>(client, table, options?)`
+
+Same as `liveQuery` but returns a `Map<key, row>` for O(1) lookups by primary key.
+
+```svelte title="OrderLookup.svelte"
+<script lang="ts">
+  import { liveTable } from "@livesql/svelte";
+  import { client } from "$lib/livesql";
+
+  interface Order {
+    id: string;
+    status: string;
+    total: number;
+  }
+
+  const orders = liveTable<Order>(client, "orders");
+  // $orders.data is Map<string, Order>
+</script>
+
+{#if !$orders.loading}
+  <p>Order abc: {$orders.data.get("abc")?.status}</p>
+  <p>Total orders: {$orders.data.size}</p>
+{/if}
+```
+
+### Store value
+
+```typescript
+interface LiveTableStore<T> {
+  data: Map<string, T>; // Map keyed by primary key
+  loading: boolean;
+  error: Error | null;
+}
+```
+
+---
+
 ## Using `get()` for non-reactive reads
 
 If you need to read the current value outside of a Svelte component:

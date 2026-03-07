@@ -1,7 +1,10 @@
 {
   "name": "@livesql/client",
-  "version": "0.1.0-alpha.3",
+  "version": "1.0.0-beta.1",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "LiveSQL client SDK — framework-agnostic WebSocket client",
   "type": "module",
   "main": "dist/index.js",
