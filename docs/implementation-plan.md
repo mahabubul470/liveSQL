@@ -224,3 +224,24 @@ The roadmap is structured around four phases, each shipping a usable artifact. N
    - SAML SSO
    - SLA-backed uptime
    - Compliance reports
+
+---
+
+## Future Ideas
+
+### PostgREST + LiveSQL Integration
+
+PostgREST (MIT, 24k+ stars) auto-generates a REST API from Postgres tables. LiveSQL streams changes via WebSocket. Together they give the full Supabase experience (CRUD + real-time) without vendor lock-in — two open-source sidecars on any Postgres.
+
+**Deliverables:**
+
+1. **Docker Compose one-command demo** — `docker compose up` spins up Postgres + PostgREST + LiveSQL + React frontend. Zero backend code, full real-time CRUD.
+2. **"Works with PostgREST" integration guide** — docs page showing the architecture, setup, and React example.
+3. **HN launch angle** — position LiveSQL as "the real-time companion to PostgREST." Targets an established community rather than competing with Supabase head-on.
+
+**Why this matters:**
+
+- PostgREST handles reads/writes, LiveSQL handles live updates — complementary, not competing
+- Both are sidecars: no app code, no migration, no lock-in
+- Works with any Postgres: self-hosted, RDS, Neon, Supabase, etc.
+- Strong positioning for launch: piggyback on PostgREST's established trust

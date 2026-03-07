@@ -2,7 +2,15 @@
 
 > Update this file as tasks are completed. Check boxes with `[x]`.
 
-### Current Sprint (2026-03-07)
+### Current Sprint — Phase 3: Production Hardening
+
+1. Chaos tests (Toxiproxy network partition, slow client, PG failover, WAL disk, thundering herd, SQL injection)
+2. Replication slot failover detection and recreation
+3. Comprehensive TypeScript types for all config
+4. Firebase migration guide
+5. Publish all packages as v1.0.0 after Phase 3 complete
+
+### Previous Sprint (2026-03-07) — DONE
 
 1. ~~Authorization header support (`Bearer <token>`)~~ → Phase 1 complete
 2. ~~k6 load test (1,000 concurrent clients)~~ → p95 96ms, all thresholds passed
