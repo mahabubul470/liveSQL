@@ -7,7 +7,7 @@
 1. ~~Authorization header support (`Bearer <token>`)~~ → Phase 1 complete
 2. ~~k6 load test (1,000 concurrent clients)~~ → p95 96ms, all thresholds passed
 3. ~~Publish benchmark results~~ → tests/load/RESULTS.md
-4. Observability hooks (`onEvent`, `onClientConnect`, `onClientDisconnect`)
+4. ~~Observability hooks (`onEvent`, `onClientConnect`, `onClientDisconnect`)~~ → done
 
 ---
 
@@ -213,7 +213,7 @@
 ### Production Features
 
 - [x] Exponential backoff with jitter (±25%, implemented in client)
-- [ ] Observability hooks: onEvent, onError, onSlotLag, onClientConnect, onClientDisconnect
+- [x] Observability hooks: onEvent, onError, onSlotLag, onClientConnect, onClientDisconnect
 - [ ] Replication slot failover detection and recreation
 - [ ] Comprehensive TypeScript types for all config
 

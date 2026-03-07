@@ -37,6 +37,12 @@ export interface ServerOptions {
    * dropped due to backpressure. Use this for alerting or metrics.
    */
   onBackpressure?: (userId: string) => void;
+  /** Called after every change event is delivered to a client. */
+  onEvent?: (userId: string, table: string, event: ChangeEvent) => void;
+  /** Called when a client successfully connects (after auth). */
+  onClientConnect?: (userId: string, clientId: string) => void;
+  /** Called when a client disconnects. */
+  onClientDisconnect?: (userId: string, clientId: string) => void;
 }
 
 interface ClientState {
@@ -115,6 +121,7 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
         batcher,
       };
       clients.set(clientId, state);
+      opts.onClientConnect?.(userId, clientId);
 
       // 3. Handle messages
       ws.on("message", (raw) => {
@@ -128,6 +135,7 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
           unsub();
         }
         clients.delete(clientId);
+        opts.onClientDisconnect?.(userId, clientId);
       });
 
       // 5. Heartbeat
@@ -233,6 +241,9 @@ export function createLiveSQLServer(provider: ChangeProvider, opts: ServerOption
 
       // Update client's last known offset
       state.lastOffset = event.offset;
+
+      // Observability hook
+      serverOpts.onEvent?.(state.userId, table, event);
 
       // Queue event for batched delivery
       state.batcher.add(event);
