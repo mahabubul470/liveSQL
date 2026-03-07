@@ -56,6 +56,12 @@ export interface PostgresProviderOptions {
   maxBufferedEvents?: number;
   /** WAL lag bytes before emitting a warning (default: 512MB) */
   lagWarningBytes?: number;
+  /**
+   * Automatically recreate the replication slot and restart the WAL stream
+   * when the slot is detected as missing (e.g., after a primary failover).
+   * Default: true.
+   */
+  reconnectOnSlotLoss?: boolean;
 }
 
 /** Convert a raw Int64 LSN to the human-readable "X/Y" format */
@@ -79,6 +85,7 @@ export class PostgresProvider implements ChangeProvider {
   private readonly pubName: string;
   private readonly maxBuffered: number;
   private readonly lagWarningBytes: number;
+  private readonly reconnectOnSlotLoss: boolean;
 
   // Connections
   private adminClient: InstanceType<typeof pg.Client> | null = null;
@@ -98,6 +105,7 @@ export class PostgresProvider implements ChangeProvider {
   private eventBuffer: ChangeEvent[] = [];
   private offset = BigInt(0);
   private lastReceivedLSN = BigInt(0);
+  private recovering = false;
 
   // Timers
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
@@ -106,6 +114,8 @@ export class PostgresProvider implements ChangeProvider {
   // Event callbacks (optional observability hooks)
   onSlotLagWarning?: (info: { slotName: string; lagBytes: number }) => void;
   onSlotInactive?: (info: { slotName: string }) => void;
+  /** Called when the replication slot is missing (e.g., after failover). */
+  onSlotLost?: (info: { slotName: string; recovered: boolean }) => void;
   onError?: (err: Error) => void;
 
   constructor(opts: PostgresProviderOptions) {
@@ -115,6 +125,7 @@ export class PostgresProvider implements ChangeProvider {
     this.pubName = opts.publicationName ?? "livesql_publication";
     this.maxBuffered = opts.maxBufferedEvents ?? 10_000;
     this.lagWarningBytes = opts.lagWarningBytes ?? DEFAULT_LAG_WARN_BYTES;
+    this.reconnectOnSlotLoss = opts.reconnectOnSlotLoss ?? true;
   }
 
   async connect(): Promise<void> {
@@ -153,7 +164,23 @@ export class PostgresProvider implements ChangeProvider {
       ]);
     }
 
-    // ── Replication connection ─────────────────────────────────────────────────
+    // ── Start replication stream + monitoring ──────────────────────────────────
+    await this.startReplicationStream();
+
+    // ── Heartbeat: acknowledge WAL every 10s ──────────────────────────────────
+    this.heartbeatTimer = setInterval(() => {
+      this.sendStandbyStatus(this.lastReceivedLSN, false);
+    }, 10_000);
+
+    // ── Slot health monitoring: check every 30s ───────────────────────────────
+    this.healthTimer = setInterval(() => {
+      void this.runHealthCheck();
+    }, 30_000);
+  }
+
+  // ── Replication stream setup (reusable for failover recovery) ─────────────
+
+  private async startReplicationStream(): Promise<void> {
     // pg.ClientConfig doesn't expose `replication` in its TypeScript types,
     // but the option is valid and documented in the pg package README.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -202,16 +229,6 @@ export class PostgresProvider implements ChangeProvider {
       `START_REPLICATION SLOT "${this.slotName}" LOGICAL ${startLSN}` +
         ` (proto_version '1', publication_names '${this.pubName}')`,
     );
-
-    // ── Heartbeat: acknowledge WAL every 10s ──────────────────────────────────
-    this.heartbeatTimer = setInterval(() => {
-      this.sendStandbyStatus(this.lastReceivedLSN, false);
-    }, 10_000);
-
-    // ── Slot health monitoring: check every 30s ───────────────────────────────
-    this.healthTimer = setInterval(() => {
-      void this.runHealthCheck();
-    }, 30_000);
   }
 
   // ── CopyBoth data handler ───────────────────────────────────────────────────
@@ -453,12 +470,17 @@ export class PostgresProvider implements ChangeProvider {
   // ── WAL slot health check ───────────────────────────────────────────────────
 
   private async runHealthCheck(): Promise<void> {
-    if (!this.adminClient) return;
+    if (!this.adminClient || this.recovering) return;
 
     try {
       const health = await checkSlotHealth(this.adminClient, this.slotName);
       if (!health) {
-        this.onSlotInactive?.({ slotName: this.slotName });
+        // Slot is missing — likely a failover
+        if (this.reconnectOnSlotLoss) {
+          await this.recoverFromSlotLoss();
+        } else {
+          this.onSlotLost?.({ slotName: this.slotName, recovered: false });
+        }
         return;
       }
       if (!health.active) {
@@ -468,6 +490,52 @@ export class PostgresProvider implements ChangeProvider {
       }
     } catch {
       // Health check failure is non-fatal
+    }
+  }
+
+  /**
+   * Recover from a missing replication slot by recreating it and restarting
+   * the WAL stream. This happens after a PostgreSQL primary failover where
+   * the slot doesn't exist on the new primary.
+   *
+   * WARNING: Events between the old primary's last confirmed LSN and the
+   * new slot's starting LSN are permanently lost. The onSlotLost callback
+   * is fired to notify the application of this potential data gap.
+   */
+  private async recoverFromSlotLoss(): Promise<void> {
+    if (this.recovering || !this.adminClient) return;
+    this.recovering = true;
+
+    try {
+      // Tear down the old replication stream
+      try {
+        this.replConn?.stream.end?.();
+      } catch {
+        // ignore
+      }
+      this.replConn = null;
+      if (this.replClient) {
+        await this.replClient.end().catch(() => {});
+        this.replClient = null;
+      }
+
+      // Clear stale relation cache (new primary may have different OIDs)
+      this.relations.clear();
+
+      // Recreate the replication slot on the new primary
+      await this.adminClient.query(`SELECT pg_create_logical_replication_slot($1, 'pgoutput')`, [
+        this.slotName,
+      ]);
+
+      // Restart the WAL stream
+      await this.startReplicationStream();
+
+      this.onSlotLost?.({ slotName: this.slotName, recovered: true });
+    } catch (err) {
+      this.onSlotLost?.({ slotName: this.slotName, recovered: false });
+      this.onError?.(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      this.recovering = false;
     }
   }
 

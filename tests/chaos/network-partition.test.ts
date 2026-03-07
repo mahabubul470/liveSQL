@@ -60,11 +60,13 @@ describe("Network partition (simulated disconnect)", () => {
   });
 
   async function setup() {
-    const slotName = "chaos_partition_" + Math.random().toString(36).slice(2, 8);
+    const suffix = Math.random().toString(36).slice(2, 8);
+    const slotName = "chaos_partition_" + suffix;
     provider = new PostgresProvider({
       connectionString: DATABASE_URL,
       tables: ["chaos_partition"],
       slotName,
+      publicationName: "chaos_partition_pub_" + suffix,
     });
     await provider.connect();
 

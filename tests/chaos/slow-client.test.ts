@@ -61,12 +61,14 @@ describe("Slow client / backpressure", () => {
     if (!canConnect) return;
     {
       const onBackpressure = vi.fn();
-      const slotName = "chaos_slow_" + Math.random().toString(36).slice(2, 8);
+      const suffix = Math.random().toString(36).slice(2, 8);
+      const slotName = "chaos_slow_" + suffix;
 
       const provider = new PostgresProvider({
         connectionString: DATABASE_URL,
         tables: ["chaos_slow"],
         slotName,
+        publicationName: "chaos_slow_pub_" + suffix,
       });
       await provider.connect();
 

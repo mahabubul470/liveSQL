@@ -11,9 +11,9 @@
  * Requires Docker PostgreSQL on port 5434.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import pg from "pg";
-import { checkSlotHealth } from "@livesql/server";
+import { checkSlotHealth, PostgresProvider } from "@livesql/server";
 
 const DATABASE_URL = "postgresql://livesql:test@localhost:5434/livesql_test";
 
@@ -78,6 +78,79 @@ describe("PostgreSQL failover (simulated slot loss)", () => {
 
       // Clean up
       await pool.query(`SELECT pg_drop_replication_slot($1)`, [slotName]);
+    }
+  });
+
+  it("PostgresProvider auto-recovers after slot is dropped", async () => {
+    if (!canConnect) return;
+    {
+      const suffix = Math.random().toString(36).slice(2, 8);
+      const slotName = "chaos_auto_" + suffix;
+      const pubName = "chaos_auto_pub_" + suffix;
+
+      // Set up table for this test
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS chaos_failover_test (
+          id SERIAL PRIMARY KEY,
+          value TEXT NOT NULL
+        );
+        ALTER TABLE chaos_failover_test REPLICA IDENTITY FULL;
+        DELETE FROM chaos_failover_test;
+      `);
+
+      const provider = new PostgresProvider({
+        connectionString: DATABASE_URL,
+        tables: ["chaos_failover_test"],
+        slotName,
+        publicationName: pubName,
+      });
+
+      await provider.connect();
+
+      // Verify slot exists and is active
+      const health1 = await checkSlotHealth(pool, slotName);
+      expect(health1).not.toBeNull();
+      expect(health1!.slotName).toBe(slotName);
+
+      // Disconnect, drop the slot, then reconnect (simulates failover)
+      await provider.disconnect();
+
+      try {
+        await pool.query(`SELECT pg_drop_replication_slot($1)`, [slotName]);
+      } catch {
+        // Slot may already be gone
+      }
+
+      // Verify it's gone
+      expect(await checkSlotHealth(pool, slotName)).toBeNull();
+
+      // Reconnect — connect() recreates the slot automatically
+      const provider2 = new PostgresProvider({
+        connectionString: DATABASE_URL,
+        tables: ["chaos_failover_test"],
+        slotName,
+        publicationName: pubName,
+        reconnectOnSlotLoss: true,
+      });
+
+      const onSlotLost = vi.fn();
+      provider2.onSlotLost = onSlotLost;
+
+      await provider2.connect();
+
+      // Verify the slot was recreated
+      const health2 = await checkSlotHealth(pool, slotName);
+      expect(health2).not.toBeNull();
+      expect(health2!.slotName).toBe(slotName);
+
+      // Clean up
+      await provider2.disconnect();
+      try {
+        await pool.query(`SELECT pg_drop_replication_slot($1)`, [slotName]);
+      } catch {
+        // may already be cleaned up
+      }
+      await pool.query("DROP TABLE IF EXISTS chaos_failover_test");
     }
   });
 });
