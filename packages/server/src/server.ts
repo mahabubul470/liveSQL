@@ -24,7 +24,14 @@ export interface ServerOptions {
   authenticate?: (req: http.IncomingMessage) => Promise<{ id: string } | null>;
   /** Table-level permission — can this user subscribe to this table? */
   permissions?: (userId: string, table: string) => Promise<boolean> | boolean;
-  /** Row-level permission — can this user see this specific row? */
+  /**
+   * Row-level permission — can this user see this specific row?
+   *
+   * The `row` object contains column values matching the subscribed table's
+   * schema (as strings from pgoutput). Column names match the database columns.
+   * For example, a table with columns `id`, `user_id`, `status` produces:
+   * `{ id: "42", user_id: "u_123", status: "pending" }`.
+   */
   rowPermission?: (userId: string, table: string, row: Record<string, unknown>) => boolean;
   /**
    * Columns allowed in client-supplied filter expressions, per table.
