@@ -129,13 +129,14 @@ if (ws.bufferedAmount > 1_000_000) {
 - Chaos test: `pg_ctl promote` on replica, verify replication slot state
 - Monitor for slot disappearance on reconnect
 
-**Mitigation**:
+**Mitigation** (IMPLEMENTED):
 
-- Detect missing slot on reconnect attempt
-- Recreate the replication slot on the new primary
-- **Warn the user** of the potential data gap (events during failover window)
-- Document the failover playbook for operators
-- Consider: store last N events in an application-level buffer for gap detection
+- `PostgresProvider` health check detects missing slot every 30s
+- `reconnectOnSlotLoss: true` (default) automatically recreates the slot and restarts the WAL stream
+- `onSlotLost({ slotName, recovered })` callback warns the application of the potential data gap
+- Relation cache is cleared on recovery (new primary may have different OIDs)
+- Guard prevents concurrent recovery attempts
+- Events between the old primary's last confirmed LSN and the new slot are permanently lost — the callback lets operators detect and handle the gap
 
 ---
 

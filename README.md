@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/@livesql/server?label=%40livesql%2Fserver)](https://www.npmjs.com/package/@livesql/server)
-[![Tests](https://img.shields.io/badge/tests-118%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-163%20passing-brightgreen.svg)](#testing)
 
 **Stream SQL database changes to web clients in real time.**
 
@@ -85,25 +85,27 @@ npm install @livesql/svelte                       # Svelte
 - **WAL-based CDC** — guaranteed delivery via PostgreSQL logical replication (pgoutput). No triggers, no polling.
 - **Sub-100ms latency** — p95 event latency of 96ms at 1,000 concurrent clients.
 - **Reconnection backfill** — clients resume from their last offset; missed events are replayed automatically.
-- **Framework SDKs** — React hooks (`useLiveQuery`, `useLiveTable`), Vue composables, Svelte stores.
+- **Framework SDKs** — React hooks (`useLiveQuery`, `useLiveTable`), Vue composables (`useLiveQuery`, `useLiveTable`), Svelte stores (`liveQuery`, `liveTable`).
 - **Event batching** — coalesces up to 50 events or flushes every 16ms for optimal throughput.
 - **Backpressure detection** — drops events for slow clients (bufferedAmount > 1MB) to prevent OOM.
 - **Filter validation** — clients filter events server-side with `"status = shipped"` syntax. Never executes SQL.
 - **JWT authentication** — `?token=<jwt>` query parameter or `Authorization: Bearer` header.
 - **Table and row permissions** — callbacks to enforce access control per user per change.
 - **WAL slot health monitoring** — configurable lag warnings and inactive slot detection.
+- **Failover recovery** — automatic replication slot recreation after PostgreSQL primary failover.
+- **Observability hooks** — `onEvent`, `onClientConnect`, `onClientDisconnect`, `onBackpressure`, `onSlotLost`.
 - **Zero migration** — attaches to existing tables as a sidecar. No schema changes required.
 
 ## Packages
 
-| Package                              | Description                                  |
-| ------------------------------------ | -------------------------------------------- |
-| [`@livesql/core`](packages/core)     | Shared TypeScript types and wire protocol    |
-| [`@livesql/server`](packages/server) | WAL CDC engine and WebSocket server          |
-| [`@livesql/client`](packages/client) | Framework-agnostic browser client            |
-| [`@livesql/react`](packages/react)   | React hooks — `useLiveQuery`, `useLiveTable` |
-| [`@livesql/vue`](packages/vue)       | Vue composables — `useLiveQuery`             |
-| [`@livesql/svelte`](packages/svelte) | Svelte stores — `liveQuery`                  |
+| Package                              | Description                                      |
+| ------------------------------------ | ------------------------------------------------ |
+| [`@livesql/core`](packages/core)     | Shared TypeScript types and wire protocol        |
+| [`@livesql/server`](packages/server) | WAL CDC engine and WebSocket server              |
+| [`@livesql/client`](packages/client) | Framework-agnostic browser client                |
+| [`@livesql/react`](packages/react)   | React hooks — `useLiveQuery`, `useLiveTable`     |
+| [`@livesql/vue`](packages/vue)       | Vue composables — `useLiveQuery`, `useLiveTable` |
+| [`@livesql/svelte`](packages/svelte) | Svelte stores — `liveQuery`, `liveTable`         |
 
 ## How It Works
 
@@ -192,11 +194,25 @@ const livesql = createLiveSQLServer(provider, {
     orders: ["status", "user_id"],
   },
 
-  // Backpressure callback
+  // Observability hooks
   onBackpressure: (userId) => {
     console.warn(`Client ${userId} is too slow, dropping events`);
   },
+  onClientConnect: (userId, clientId) => {
+    console.log(`Connected: ${clientId} (user: ${userId})`);
+  },
+  onClientDisconnect: (userId, clientId) => {
+    console.log(`Disconnected: ${clientId}`);
+  },
+  onEvent: (userId, table, event) => {
+    metrics.increment(`livesql.events.${table}`);
+  },
 });
+
+// Failover recovery hooks (on PostgresProvider)
+provider.onSlotLost = ({ slotName, recovered }) => {
+  console.warn(`Slot ${slotName} lost — ${recovered ? "auto-recovered" : "recovery failed"}`);
+};
 
 livesql.attach(httpServer);
 ```
@@ -222,7 +238,7 @@ ALTER TABLE orders REPLICA IDENTITY FULL;
 ## Testing
 
 ```bash
-# Run all unit tests (118 tests across 11 test files)
+# Run all unit tests (163 tests across 15 test files)
 pnpm test
 
 # Run tests for a specific package
@@ -231,6 +247,9 @@ pnpm --filter @livesql/server test
 # Run integration tests (requires Docker PostgreSQL)
 docker compose -f docker-compose.test.yml up -d
 pnpm --filter integration test
+
+# Run chaos tests (requires Docker PostgreSQL)
+npx vitest run --config tests/chaos/vitest.config.ts tests/chaos/
 
 # Run k6 load test (requires k6 + Docker PostgreSQL)
 node tests/load/bench-server.js &
@@ -246,14 +265,15 @@ livesql/
 │   ├── server/         # WAL CDC engine + WebSocket server
 │   ├── client/         # Framework-agnostic client SDK
 │   ├── react/          # React hooks (useLiveQuery, useLiveTable)
-│   ├── vue/            # Vue composables (useLiveQuery)
-│   └── svelte/         # Svelte stores (liveQuery)
+│   ├── vue/            # Vue composables (useLiveQuery, useLiveTable)
+│   └── svelte/         # Svelte stores (liveQuery, liveTable)
 ├── apps/
 │   ├── demo/           # Vanilla JS demo
 │   ├── react-demo/     # React + Vite demo application
 │   └── docs/           # Docusaurus documentation site
 ├── tests/
 │   ├── integration/    # E2E sync correctness tests
+│   ├── chaos/          # Chaos tests (23 tests, 6 failure modes)
 │   └── load/           # k6 load test (1,000 clients)
 └── docs/               # Architecture, specs, decision records
 ```
@@ -262,8 +282,8 @@ livesql/
 
 - [x] **Phase 0** — LISTEN/NOTIFY PoC
 - [x] **Phase 1** — WAL CDC engine, JWT auth, filter validation, reconnection backfill
-- [x] **Phase 2** — React/Vue/Svelte SDKs, event batching, backpressure, docs site _(in progress — beta pending)_
-- [ ] **Phase 3** — Chaos tests, observability hooks, production hardening, v1.0
+- [x] **Phase 2** — React/Vue/Svelte SDKs, event batching, backpressure, docs site
+- [x] **Phase 3** — Chaos tests, observability hooks, failover recovery, production hardening _(v1.0 publish pending)_
 - [ ] **Phase 4** — MySQL support, managed cloud service
 
 See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap and [docs/progress.md](docs/progress.md) for task tracking.
@@ -277,6 +297,7 @@ See [docs/implementation-plan.md](docs/implementation-plan.md) for the full road
 - [Decision Records](docs/decisions.md)
 - [Failure Modes](docs/failure-modes.md)
 - [Migration from Supabase Realtime](apps/docs/docs/guides/migration-supabase.md)
+- [Migration from Firebase](apps/docs/docs/guides/migration-firebase.md)
 
 ## Contributing
 

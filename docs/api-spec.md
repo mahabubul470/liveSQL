@@ -2,53 +2,66 @@
 
 ## Package: @livesql/server
 
-### `createLiveSQLServer(options): LiveSQLServer`
+### `createLiveSQLServer(provider, options): LiveSQLServer`
 
 The primary server-side entry point. Creates a WebSocket server that streams database changes to connected clients.
 
 ```typescript
-import { createLiveSQLServer } from "@livesql/server";
+import { createLiveSQLServer, PostgresProvider } from "@livesql/server";
 
-const livesql = createLiveSQLServer({
+const provider = new PostgresProvider({
+  connectionString: "postgresql://user:pass@localhost:5432/mydb",
+  tables: ["orders", "products"],
+  // OPTIONAL: Custom replication slot name (default: "livesql_slot")
+  slotName: "my_app_slot",
+  // OPTIONAL: Auto-recover when slot is lost after failover (default: true)
+  reconnectOnSlotLoss: true,
+});
+await provider.connect();
+
+// Failover recovery hook (on provider)
+provider.onSlotLost = ({ slotName, recovered }) => {
+  console.warn(`Slot ${slotName} lost — ${recovered ? "recovered" : "failed"}`);
+};
+
+const livesql = createLiveSQLServer(provider, {
   // REQUIRED: PostgreSQL connection string
   database: "postgresql://user:pass@localhost:5432/mydb",
 
   // REQUIRED: Which tables to expose over WebSocket
-  tables: ["orders", "products", "notifications"],
+  tables: ["orders", "products"],
 
-  // REQUIRED: Authentication function
-  // Called on every WebSocket handshake
-  // Return user object (truthy) to allow, null/undefined to reject
+  // OPTIONAL: JWT secret for built-in verification (from ?token= or Authorization header)
+  jwtSecret: process.env.JWT_SECRET,
+
+  // OPTIONAL: Custom authentication function (mutually exclusive with jwtSecret)
+  // Return user object to allow, null to reject
   authenticate: async (req: IncomingMessage) => {
     return verifyJWT(req.headers.authorization);
   },
 
   // OPTIONAL: Table-level permission
-  // Called when a client subscribes to a table
-  // Return true to allow, false to reject
   permissions: async (userId: string, table: string) => {
-    if (table === "orders") return true; // all users see orders
-    if (table === "products") return true;
-    return false;
+    return true;
   },
 
   // OPTIONAL: Row-level permission
-  // Called for EVERY change event before delivery
-  // Return true to deliver, false to skip
+  // The row object contains column values as strings from pgoutput
   rowPermission: (userId: string, table: string, row: Record<string, unknown>) => {
     if (table === "orders") return row.user_id === userId;
     return true;
   },
 
   // OPTIONAL: Columns allowed in client-supplied filter expressions
-  // If not set, no client-side filtering is permitted
   allowedFilterColumns: {
-    orders: ["status", "user_id", "created_at"],
-    products: ["category", "price"],
+    orders: ["status", "user_id"],
   },
 
-  // OPTIONAL: WebSocket server port (if standalone, not attaching to HTTP server)
-  port: 4000,
+  // OPTIONAL: Observability hooks
+  onBackpressure: (userId: string) => void 0,
+  onEvent: (userId: string, table: string, event: ChangeEvent) => void 0,
+  onClientConnect: (userId: string, clientId: string) => void 0,
+  onClientDisconnect: (userId: string, clientId: string) => void 0,
 });
 ```
 
@@ -61,22 +74,22 @@ interface LiveSQLServer {
 
   // Graceful shutdown — closes all connections and replication slot
   close(): Promise<void>;
-
-  // Event emitter for observability
-  on(event: "error", listener: (err: Error) => void): void;
-  on(event: "client:connect", listener: (clientId: string) => void): void;
-  on(event: "client:disconnect", listener: (clientId: string) => void): void;
-  on(
-    event: "client:backpressure",
-    listener: (info: { clientId: string; buffered: number }) => void,
-  ): void;
-  on(
-    event: "slot:lag-warning",
-    listener: (info: { slotName: string; lagBytes: number }) => void,
-  ): void;
-  on(event: "slot:inactive", listener: (info: { slotName: string }) => void): void;
 }
 ```
+
+Observability is handled via callback options in `ServerOptions`:
+
+- `onEvent(userId, table, event)` — after every change event delivery
+- `onClientConnect(userId, clientId)` — after successful auth
+- `onClientDisconnect(userId, clientId)` — on WebSocket close
+- `onBackpressure(userId)` — when a client's send buffer exceeds 1 MiB
+
+Provider-level hooks (on `PostgresProvider` instance):
+
+- `onSlotLost({ slotName, recovered })` — replication slot missing (e.g., after failover)
+- `onSlotLagWarning({ slotName, lagBytes })` — WAL lag exceeds threshold
+- `onSlotInactive({ slotName })` — slot exists but not actively consuming
+- `onError(err)` — replication stream error
 
 ### Usage with Express
 
@@ -218,9 +231,28 @@ interface UseLiveQueryResult<T> {
 - **delete**: Removes matching row (by `id` field) from `data` array
 - **reconnect**: Automatically re-subscribes from last offset — no data loss
 
-### `useLiveTable<T>(table, options?)` (Phase 2)
+### `useLiveTable<T>(table, options?)`
 
 Like `useLiveQuery` but returns a `Map<string, T>` keyed by primary key for O(1) lookups.
+
+```typescript
+import { useLiveTable } from "@livesql/react";
+
+function OrderDashboard() {
+  const { data: orders } = useLiveTable<Order>("orders", { key: "id" });
+  const order = orders.get("order-123"); // O(1) lookup
+}
+```
+
+#### Return Type
+
+```typescript
+interface UseLiveTableResult<T> {
+  data: Map<string, T>; // Current rows keyed by primary key
+  loading: boolean;
+  error: Error | null;
+}
+```
 
 ### `useLiveSQLClient()`
 
@@ -229,6 +261,75 @@ Access the raw `LiveSQLClient` instance from context.
 ```typescript
 const client = useLiveSQLClient();
 // For advanced use cases — prefer useLiveQuery for most cases
+```
+
+---
+
+## Package: @livesql/vue
+
+### `createLiveSQLPlugin(options)`
+
+Vue plugin that provides a shared `LiveSQLClient` instance via `provide/inject`.
+
+```typescript
+import { createApp } from "vue";
+import { createLiveSQLPlugin } from "@livesql/vue";
+
+const app = createApp(App);
+app.use(createLiveSQLPlugin({ url: "wss://api.example.com/livesql", getToken }));
+```
+
+### `useLiveQuery<T>(table, options?)`
+
+Composable that returns reactive `{ data, loading, error }` with an array of rows.
+
+```vue
+<script setup lang="ts">
+import { useLiveQuery } from "@livesql/vue";
+const { data: orders, loading } = useLiveQuery<Order>("orders");
+</script>
+```
+
+### `useLiveTable<T>(table, options?)`
+
+Composable that returns reactive `{ data, loading, error }` with a `Map<string, T>` for O(1) lookups.
+
+```vue
+<script setup lang="ts">
+import { useLiveTable } from "@livesql/vue";
+const { data: orders } = useLiveTable<Order>("orders");
+// orders.value.get("order-123")
+</script>
+```
+
+---
+
+## Package: @livesql/svelte
+
+### `liveQuery<T>(client, table, options?)`
+
+Store factory that returns a `Readable<{ data: T[], loading, error }>`.
+
+```svelte
+<script>
+import { liveQuery } from "@livesql/svelte";
+const orders = liveQuery(client, "orders", { filter: "status = pending" });
+</script>
+{#each $orders.data as order}
+  <div>{order.status}</div>
+{/each}
+```
+
+### `liveTable<T>(client, table, options?)`
+
+Store factory that returns a `Readable<{ data: Map<string, T>, loading, error }>` for O(1) lookups.
+
+```svelte
+<script>
+import { liveTable } from "@livesql/svelte";
+const orders = liveTable(client, "orders");
+// $orders.data.get("order-123")
+</script>
 ```
 
 ---
