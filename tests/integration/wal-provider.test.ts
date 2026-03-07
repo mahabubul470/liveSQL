@@ -141,7 +141,13 @@ describe("Phase 1 E2E — PostgresProvider (WAL)", () => {
     const ws = await connectWS(`ws://localhost:${serverPort}`);
     ws.send(JSON.stringify({ type: "subscribe", table: "orders" }));
 
-    const msgPromise = waitForSync(ws);
+    // Wait for the specific event by customer_name (earlier tests may produce
+    // WAL events that get batched into the first sync message)
+    const msgPromise = waitForMessage(
+      ws,
+      (m) =>
+        m.type === "sync" && m.events.some((e) => e.row["customer_name"] === "WAL Insert Test"),
+    ) as Promise<SyncMessage>;
 
     await dbClient.query("INSERT INTO orders (customer_name, status, total) VALUES ($1, $2, $3)", [
       "WAL Insert Test",
@@ -152,11 +158,10 @@ describe("Phase 1 E2E — PostgresProvider (WAL)", () => {
     const msg = await msgPromise;
     ws.close();
 
-    expect(msg.events).toHaveLength(1);
-    const evt = msg.events[0]!;
+    const evt = msg.events.find((e) => e.row["customer_name"] === "WAL Insert Test")!;
+    expect(evt).toBeDefined();
     expect(evt.type).toBe("insert");
     expect(evt.table).toBe("orders");
-    expect(evt.row["customer_name"]).toBe("WAL Insert Test");
     expect(evt.row["status"]).toBe("pending");
     expect(typeof evt.lsn).toBe("string");
     expect(evt.lsn).toMatch(/^[0-9A-F]+\/[0-9A-F]+$/);
@@ -175,15 +180,20 @@ describe("Phase 1 E2E — PostgresProvider (WAL)", () => {
     const ws = await connectWS(`ws://localhost:${serverPort}`);
     ws.send(JSON.stringify({ type: "subscribe", table: "orders" }));
 
-    const msgPromise = waitForSync(ws);
+    const msgPromise = waitForMessage(
+      ws,
+      (m) =>
+        m.type === "sync" &&
+        m.events.some((e) => e.type === "update" && String(e.row["id"]) === String(id)),
+    ) as Promise<SyncMessage>;
 
     await dbClient.query("UPDATE orders SET status = 'shipped' WHERE id = $1", [id]);
 
     const msg = await msgPromise;
     ws.close();
 
-    expect(msg.events).toHaveLength(1);
-    const evt = msg.events[0]!;
+    const evt = msg.events.find((e) => e.type === "update" && String(e.row["id"]) === String(id))!;
+    expect(evt).toBeDefined();
     expect(evt.type).toBe("update");
     expect(evt.row["status"]).toBe("shipped");
     // REPLICA IDENTITY FULL: old row is available
@@ -202,17 +212,23 @@ describe("Phase 1 E2E — PostgresProvider (WAL)", () => {
     const ws = await connectWS(`ws://localhost:${serverPort}`);
     ws.send(JSON.stringify({ type: "subscribe", table: "orders" }));
 
-    const msgPromise = waitForSync(ws);
+    // Wait for the specific delete event (pgoutput returns all values as text)
+    const msgPromise = waitForMessage(
+      ws,
+      (m) =>
+        m.type === "sync" &&
+        m.events.some((e) => e.type === "delete" && String(e.row["id"]) === String(id)),
+    ) as Promise<SyncMessage>;
 
     await dbClient.query("DELETE FROM orders WHERE id = $1", [id]);
 
     const msg = await msgPromise;
     ws.close();
 
-    expect(msg.events).toHaveLength(1);
-    const evt = msg.events[0]!;
+    const evt = msg.events.find((e) => e.type === "delete" && String(e.row["id"]) === String(id))!;
+    expect(evt).toBeDefined();
     expect(evt.type).toBe("delete");
-    expect(evt.row["id"]).toBe(id);
+    expect(String(evt.row["id"])).toBe(String(id));
   });
 
   it("replays buffered events on reconnect with offset", async () => {

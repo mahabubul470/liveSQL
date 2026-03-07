@@ -169,17 +169,31 @@ describe("Phase 0 E2E — ListenNotifyProvider", () => {
     const ws = await connectWS(`ws://localhost:${serverPort}`);
     ws.send(JSON.stringify({ type: "subscribe", table: "orders" }));
 
-    const msgPromise = waitForMessage(ws);
+    // Wait for a sync containing our specific delete event (previous tests
+    // may produce events that get batched into the same message)
+    const msgPromise = new Promise<SyncMessage>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("timeout waiting for delete")), 5000);
+      ws.on("message", (data) => {
+        const msg = JSON.parse(data.toString()) as SyncMessage;
+        if (
+          msg.type === "sync" &&
+          msg.events.some((e) => e.type === "delete" && String(e.row["id"]) === String(id))
+        ) {
+          clearTimeout(timer);
+          resolve(msg);
+        }
+      });
+    });
 
     await dbClient.query("DELETE FROM orders WHERE id = $1", [id]);
 
     const msg = await msgPromise;
     ws.close();
 
-    expect(msg.events).toHaveLength(1);
-    const evt = msg.events[0]!;
+    const evt = msg.events.find((e) => e.type === "delete" && String(e.row["id"]) === String(id))!;
+    expect(evt).toBeDefined();
     expect(evt.type).toBe("delete");
-    expect(evt.row["id"]).toBe(id);
+    expect(String(evt.row["id"])).toBe(String(id));
   });
 
   it("stops delivering events after unsubscribe", async () => {
